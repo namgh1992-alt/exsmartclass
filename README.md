@@ -10,9 +10,7 @@
 ## GitHub Pages로 올리기
 
 1. GitHub에 로그인하고 오른쪽 위 **＋ › New repository**를 누릅니다. 이름(예: `school-office-demo`)을 적고 **Public**으로 만듭니다.
-2. 새 저장소에서 **Add file › Upload files**를 누르고, 이 폴더 안의 파일을 **모두** 끌어다 놓습니다.
-   - `index.html`, `README.md`, `.nojekyll`, `icons/` 폴더, `fonts/` 폴더
-   - `.nojekyll`이 안 보이면 파일 탐색기에서 ‘숨긴 항목 보기’를 켜세요. 없어도 대부분 동작합니다.
+2. 새 저장소에서 **Add file › Upload files**를 누르고, 이 폴더 안의 **`index.html`, `README.md`, `fonts` 폴더**를 한꺼번에 끌어다 놓습니다. (모두 22개 파일 · 깃허브 한 번 올리기 한도 100개 안)
 3. **Commit changes**를 누릅니다.
 4. 저장소의 **Settings › Pages**에서 *Branch*를 `main` / `/(root)`로 고르고 **Save**를 누릅니다.
 5. 1~2분 뒤 `https://아이디.github.io/school-office-demo/` 주소로 열립니다. 이 주소를 선생님들께 나눠 주면 됩니다.
@@ -21,6 +19,9 @@
 
 | 파일 | 쓰임 |
 |---|---|
-| `index.html` | 교무실 화면 + 예시 자료 채우기 |
-| `icons/` | 메뉴 아이콘 |
-| `fonts/` | 글꼴 |
+| `index.html` | 교무실 화면 + 예시 자료 채우기 (메뉴 아이콘 · 안내서 그림 포함) |
+| `fonts/` | 글꼴 20개 |
+
+## 고칠 때
+
+`index.html`만 새 파일로 다시 올리면 됩니다. 글꼴은 바뀌지 않습니다.
