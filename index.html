@@ -12072,8 +12072,8 @@ function caFormData(g,res){const st=caResList(g,res);const rooms=roomsOf(g);cons
 /* ---- HWPX: 원본 양식의 표 · 글자 모양은 그대로 두고 칸만 채움 ---- */
 const caKids=(el,n)=>[...el.children].filter(c=>c.localName===n);
 function caCells(tbl){const m={};caKids(tbl,'tr').forEach(tr=>caKids(tr,'tc').forEach(tc=>{const a=caKids(tc,'cellAddr')[0];m[a.getAttribute('rowAddr')+','+a.getAttribute('colAddr')]=tc}));return m}
-function caSetTc(tc,text){if(!tc)return;const sub=caKids(tc,'subList')[0];const ps=caKids(sub,'p');const p=ps[0];ps.slice(1).forEach(x=>x.remove());
-  caKids(p,'linesegarray').forEach(x=>x.remove());const runs=caKids(p,'run');const run=runs[0];runs.slice(1).forEach(x=>x.remove());[...run.childNodes].forEach(x=>x.remove());
+function caSetTc(tc,text,st){if(!tc)return;const sub=caKids(tc,'subList')[0];const ps=caKids(sub,'p');const p=ps[0];ps.slice(1).forEach(x=>x.remove());
+  caKids(p,'linesegarray').forEach(x=>x.remove());const runs=caKids(p,'run');const run=runs[0];if(st){if(st.pp)p.setAttribute('paraPrIDRef',st.pp);if(st.cp)run.setAttribute('charPrIDRef',st.cp)}runs.slice(1).forEach(x=>x.remove());[...run.childNodes].forEach(x=>x.remove());
   const t=run.ownerDocument.createElementNS(CA_HPNS,'hp:t');t.textContent=text==null?'':String(text);run.appendChild(t)}
 function caSetFormula(tc,val){if(!tc)return;const fb=tc.getElementsByTagNameNS(CA_HPNS,'fieldBegin')[0];if(!fb){caSetTc(tc,val+'명');return}
   [...fb.getElementsByTagNameNS(CA_HPNS,'stringParam')].forEach(p=>{if(p.getAttribute('name')==='LastResult')p.textContent=String(val)});
@@ -12108,8 +12108,10 @@ async function caBuildHwpx(D){
     caTexts(cl[0],v=>v.replace(/\(\s*\d+\s*\)\s*학년/,'( '+D.ng+' ) 학년').replace(/\(\s*[가-힣]\s*\)\s*반/,'( '+CA_LBL(ci)+' )반'));
     caTexts(cl[1],v=>v.replace(/남:\s*명/,'남:'+caFit(m,5)+'명').replace(/여:\s*명/,'여:'+caFit(f,6)+'명').replace(/계:\s*명/,'계:'+caFit(L.length,6)+'명').replace(/기록자:\s*\([^)]*\)/,'기록자: (               )'));
     const [tNo,tData]=tbls([cl[3]]);const need=Math.max(28,L.length);
+    const CD0=caCells(tData);const sty=c=>{const tc=CD0['0,'+c];const p=tc&&caKids(caKids(tc,'subList')[0],'p')[0];const run=p&&caKids(p,'run')[0];return {pp:p?.getAttribute('paraPrIDRef'),cp:run?.getAttribute('charPrIDRef')}};
+    /* 모든 줄을 첫 줄과 같은 모양(가운데 정렬)으로: 양식의 14번 줄부터 왼쪽 정렬이던 칸까지 */const ST=[sty(0),sty(1),sty(2),{pp:sty(1).pp,cp:sty(1).cp}];
     caGrowRows(tNo,need);caGrowRows(tData,need);const CN=caCells(tNo),CD=caCells(tData);
-    for(let r=0;r<need;r++){caSetTc(CN[r+',0'],r+1);const s=L[r];caSetTc(CD[r+',0'],'');caSetTc(CD[r+',1'],s?s.sx:'');caSetTc(CD[r+',2'],s?D.roomNo(s):'');caSetTc(CD[r+',3'],s?caNote(s):'')}
+    for(let r=0;r<need;r++){caSetTc(CN[r+',0'],r+1);const s=L[r];caSetTc(CD[r+',0'],'',ST[0]);caSetTc(CD[r+',1'],s?s.sx:'',ST[1]);caSetTc(CD[r+',2'],s?D.roomNo(s):'',ST[2]);caSetTc(CD[r+',3'],s?caNote(s):'',ST[3])}
     const tCnt=tbls([cl[4]])[0];if(tCnt){const CC=caCells(tCnt);let tm=0,tf=0;
       for(let k=0;k<7;k++){const o=D.orig[k];const om=o?L.filter(s=>s.sx==='남'&&D.ri(s.room)===k).length:'',of=o?L.filter(s=>s.sx==='여'&&D.ri(s.room)===k).length:'';
         caSetTc(CC['1,'+(k+2)],o?om:'');caSetTc(CC['2,'+(k+2)],o?of:'');if(o&&k<6){tm+=om;tf+=of}}
