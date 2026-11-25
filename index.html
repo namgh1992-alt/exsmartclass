@@ -2768,7 +2768,7 @@ const cfg=()=>{const c=S.config.main||{};const o={...DEFAULT_CONFIG,...c};
 const periods=()=>periodsAll();
 
 /* ----- Data store: shared db when the viewer grants it, otherwise this browser only ----- */
-const COLS=['progress','classFunds','config','events','deptTasks','gradeTasks','rooms','gradeMeta','tt','notices','noticeReads','minutes','surveys','surveyVotes','staff','submissions','resv','trips','members','basett','pageCfg','alerts','handovers','memos','programs','ttplan','gws','shares','weekplans','trainings','trainSigs','trainRosters','budgets','budgetUses','lawEdu','hoursPlans','syllabi','weekGuides','space3d','presence','sepDuty','formsBoard','classTools','classAssign'];
+const COLS=['progress','classFunds','config','events','deptTasks','gradeTasks','rooms','gradeMeta','tt','notices','noticeReads','minutes','surveys','surveyVotes','staff','submissions','resv','trips','members','basett','pageCfg','alerts','handovers','memos','programs','ttplan','gws','shares','weekplans','trainings','trainSigs','trainRosters','budgets','budgetUses','lawEdu','hoursPlans','syllabi','weekGuides','space3d','presence','sepDuty','formsBoard','classTools','classAssign','formTpl'];
 const S={};COLS.forEach(c=>S[c]={});
 /* 학년도별 시트: 아래 모음은 학년도마다 따로 보관 (문서 id 끝에 @학년도, 처음 학년도는 붙이지 않음) */
 const YEARLY=new Set(['progress','classFunds','lawEdu','hoursPlans','weekGuides','budgets','budgetUses','trainings','trainSigs','events','deptTasks','gradeTasks','tt','basett','gradeMeta','minutes','surveys','submissions','resv','trips','alerts','programs','ttplan','memos','shares']);
@@ -3381,7 +3381,7 @@ function minutesListHTML(groups){const keys=Object.keys(groups);if(!keys.length)
   <div class="actions" style="margin-top:12px"><button class="btn dark sm" data-act="minuteHwp" data-id="${esc(m.id)}">📄 한글(HWP) 파일 받기</button><button class="btn light sm" data-act="minutePrint" data-id="${esc(m.id)}">🖨️ 인쇄</button><button class="btn gray sm" data-act="minuteCopy" data-id="${esc(m.id)}">텍스트 복사</button>${canEditItem(m)?`<button class="btn gray sm w" data-act="minuteEdit" data-id="${esc(m.id)}">수정</button><button class="btn danger sm w" data-act="minuteDel" data-id="${esc(m.id)}">삭제</button>`:''}</div></details>`).join('')}</div>`).join('')}
 function minuteModal(id){const m=id?S.minutes[id]:null;
   openModal(m?'협의록 수정':'협의록 작성',`<form data-form="minute" data-id="${esc(id||'')}" class="form">
-  <div class="field full mn-upload"><div class="actions" style="gap:10px"><label class="btn light" for="mn-file" style="cursor:pointer">📄 한글 파일(.hwp·.hwpx)에서 불러오기</label><input type="file" id="mn-file" accept=".hwp,.hwpx" hidden data-chg="mnFile"><span class="muted small" id="mn-file-status">회의록 양식의 회의명·안건·일시·장소·참석자·협의 내용을 자동으로 채웁니다.</span></div></div>
+  <div class="field full mn-upload"><div class="actions" style="gap:10px"><label class="btn light" for="mn-file" style="cursor:pointer">📄 한글 파일(.hwp·.hwpx)에서 불러오기</label><input type="file" id="mn-file" accept=".hwp,.hwpx" hidden data-chg="mnFile">${tplBtn('mn','btn ghost')}<span class="muted small" id="mn-file-status">회의록 양식의 회의명·안건·일시·장소·참석자·협의 내용을 자동으로 채웁니다.</span></div></div>
   <div class="field full"><label for="mn-title">회의명 *</label><input id="mn-title" name="title" required maxlength="140" value="${esc(m?.title||'')}" placeholder="예: 정보공개심의위원회 회의록"></div>
   <div class="field full"><label for="mn-topic">안건</label><input id="mn-topic" name="topic" maxlength="300" value="${esc(m?.topic||'')}" placeholder="예: 정보공개여부 결정"></div>
   <div class="field"><label for="mn-date">날짜 *</label><input id="mn-date" type="date" name="date" required value="${esc(m?.date||today())}"></div>
@@ -4333,7 +4333,7 @@ function basettPage(){const B=BASE();const sy=schoolYear();
   return `<div class="pagehead"><div><h1>🗓️ 학급 기본 시간표</h1><p>한글(HWP) 기본 시간표 파일을 올리면 반별 시간표를 읽어 각 학년 교무실의 주간 시간표에 자동으로 넣습니다. 교담·강사 시간은 교과전담 시간표를 기준으로 넣습니다.</p></div></div>
   <div class="stack">
   <section class="card"><div class="head"><h2>📤 한글 파일 올리기</h2></div>
-    ${canBase()?`<label class="file-drop" for="ttFile" style="padding:26px"><span style="font-size:calc(45px * var(--fs,1))">📄</span><b>학급별 기본 시간표 한글 파일 선택 (.hwp · .hwpx)</b><small class="muted">학급별 시간표(제목 예: 1-1, 3-2)와 ‘교과전담 시간표’가 들어 있는 파일</small></label><input type="file" id="ttFile" accept=".hwp,.hwpx" hidden data-chg="ttFile">
+    ${canBase()?`<label class="file-drop" for="ttFile" style="padding:26px"><span style="font-size:calc(45px * var(--fs,1))">📄</span><b>학급별 기본 시간표 한글 파일 선택 (.hwp · .hwpx)</b><small class="muted">학급별 시간표(제목 예: 1-1, 3-2)와 ‘교과전담 시간표’가 들어 있는 파일</small></label><input type="file" id="ttFile" accept=".hwp,.hwpx" hidden data-chg="ttFile"><div class="actions" style="margin-top:10px">${tplBtn('tt','btn light sm')}<span class="muted small">이 화면이 읽을 수 있는 시간표 양식(.hwpx)</span></div>
     <p class="help">한글 2010 이후의 .hwp 파일과 .hwpx 파일을 읽습니다. 파일 내용은 이 화면에서만 읽고, 시간표 결과만 저장됩니다.</p>`:'<div class="note">기본 시간표 파일은 관리자가 올립니다. 아래에서 현재 적용된 내용을 볼 수 있습니다.</div>'}
   </section>
   <section class="card"><div class="head"><h2>📋 현재 적용된 기본 시간표</h2>${B?`<div class="tools"><button class="btn light sm" data-act="basePreview">반별 보기</button>${canBase()&&baseHasNative()?`<button class="btn light sm" data-act="baseCoteach">${B.coteach?'원어민 co-teaching 해제':'원어민 co-teaching 적용'}</button>`:''}${canBase()?'<button class="btn danger sm" data-act="baseClear">기본 시간표 지우기</button>':''}</div>`:''}</div>
@@ -4523,7 +4523,7 @@ function buildDutyPeople(parsed){const map=new Map();
 
 /* ===== 업무분장 업로드 화면 ===== */
 let dutyDraft=null;
-function dutyBanner(){if(!ME.admin)return '';return `<section class="card upload-banner"><div class="ub-icon">📤</div><div style="flex:1;min-width:0"><h2>업무분장 파일 올리기</h2><p class="muted small" style="margin:4px 0 0">한글 업무분장표(.hwp, .hwpx)를 올리면 보직교사, 학년·반 담임, 부서·업무분장·세부 업무를 읽어 아래 표에 채웁니다. 교담·비교과 줄은 담임 배정에서 빠집니다.</p></div><label class="btn dark" for="dutyFile" style="cursor:pointer">파일 선택</label><input type="file" id="dutyFile" accept=".hwp,.hwpx" hidden data-chg="dutyFile"></section>`}
+function dutyBanner(){if(!ME.admin)return '';return `<section class="card upload-banner"><div class="ub-icon">📤</div><div style="flex:1;min-width:0"><h2>업무분장 파일 올리기</h2><p class="muted small" style="margin:4px 0 0">한글 업무분장표(.hwp, .hwpx)를 올리면 보직교사, 학년·반 담임, 부서·업무분장·세부 업무를 읽어 아래 표에 채웁니다. 교담·비교과 줄은 담임 배정에서 빠집니다.</p></div><div class="actions">${tplBtn('duty','btn light')}<label class="btn dark" for="dutyFile" style="cursor:pointer">파일 선택</label></div><input type="file" id="dutyFile" accept=".hwp,.hwpx" hidden data-chg="dutyFile"></section>`}
 CHG.dutyFile=async el=>{const file=el.files[0];el.value='';if(!file)return;if(!/\.(hwp|hwpx)$/i.test(file.name)){toast('.hwp 또는 .hwpx 파일만 올릴 수 있습니다.','warn');return}
   toast('업무분장 파일을 읽는 중입니다…');
   try{const items=await readDocItems(file);const parsed=interpretDuty(items);const people=buildDutyPeople(parsed);
@@ -6545,7 +6545,7 @@ FORM.acSave=async f=>{if(!AC)return;const pick=new Set([...f.querySelectorAll('i
     else{for(const id of del)await store.del('events',id);for(const[id,v] of Object.entries(docs))await store.set('events',id,v)}
     closeModal();const first=AC.items.find((x,i)=>pick.has(i));if(first){ui.cal.school=parseD(first.start)}AC=null;render();toast(`학교 일정에 ${n}건을 넣었습니다.`)}
   catch(e){toast(dbErr(e),'warn')}};
-function acButtonHTML(){return ME.canWrite?`<button class="btn light" data-act="acPick" title="학사 일정표 한글 파일에서 휴일·방학·주요 일정을 불러옵니다">📄 학사 일정 불러오기</button><input type="file" id="acFile" accept=".hwp,.hwpx" hidden data-chg="acFile">`:''}
+function acButtonHTML(){return ME.canWrite?`<button class="btn light" data-act="acPick" title="학사 일정표 한글 파일에서 휴일·방학·주요 일정을 불러옵니다">📄 학사 일정 불러오기</button><input type="file" id="acFile" accept=".hwp,.hwpx" hidden data-chg="acFile">${tplBtn('ac','btn ghost')}`:''}
 
 /* ===== 처음 쓰는 학교: 관리자 시작 안내 (홈) ===== */
 const SETUP_STEPS=[
@@ -7173,7 +7173,7 @@ function trainPage(){if(ui.trainId&&S.trainings?.[ui.trainId])return trainDetail
   ${list.length?`<div class="tr-list">${list.map(t=>{const n=(t.people||[]).length,s=trSigs(t.id).length;const mi=trMyIdx(t);const mine=mi>=0?(trSig(t.id,mi)?'<span class="chip ok">✓ 내 서명 완료</span>':'<span class="chip danger">✍ 서명하기</span>'):'';
     return `<button class="tr-card" data-act="trOpen" data-id="${esc(t.id)}"><span class="muted small">${esc(trDateText(t))}</span><b>${esc(t.title||'교직원 연수')}</b><small>📍 ${esc(t.place||'-')} · ${esc(trScopeText(t))} ${n}명</small>
       <span class="tr-bar"><i style="width:${n?Math.round(s*100/n):0}%"></i></span><span class="tr-meta"><span class="small">서명 ${s}/${n}</span>${mine}</span></button>`}).join('')}</div>`:'<div class="empty">등록된 연수가 없습니다.'+(ME.canWrite?'<br>+ 연수 등록으로 시작하세요.':'')+'</div>'}</section>
-  <section class="card"><div class="head"><h2>👥 연수 명단 서식 (연수부)</h2>${ME.canWrite?`<div class="tools"><label class="btn light sm" for="trRosterFile">📄 연수부 파일 올리기</label><input type="file" id="trRosterFile" accept=".hwp,.hwpx,.csv,.txt" hidden data-chg="trRosterFile"><button class="btn light sm" data-act="trRosterStaff">업무분장에서 만들기</button><button class="btn light sm" data-act="trRosterPaste">직접 붙여넣기</button></div>`:''}</div>
+  <section class="card"><div class="head"><h2>👥 연수 명단 서식 (연수부)</h2>${ME.canWrite?`<div class="tools"><label class="btn light sm" for="trRosterFile">📄 연수부 파일 올리기</label><input type="file" id="trRosterFile" accept=".hwp,.hwpx,.csv,.txt" hidden data-chg="trRosterFile">${tplBtn('tr','btn light sm')}<button class="btn light sm" data-act="trRosterStaff">업무분장에서 만들기</button><button class="btn light sm" data-act="trRosterPaste">직접 붙여넣기</button></div>`:''}</div>
   <p class="help" style="margin-top:0">예전 연수 등록부 한글 파일(.hwp · .hwpx)을 올리면 <b>순 · 구분 · 성명</b>을 읽어 서식으로 저장합니다. 연수를 등록할 때 서식을 누르면 사람 목록이 자동으로 들어갑니다.</p>
   ${rosters.length?`<div class="plist">${rosters.map(r=>`<div class="preview-item"><span style="flex:1"><b>${esc(r.name)}</b> <span class="muted small">${(r.people||[]).length}명 · ${esc(r.scope||'')}${r.src?' · '+esc(r.src):''}</span></span><button class="btn gray sm" data-act="trRosterView" data-id="${esc(r.id)}">보기</button>${ME.canWrite?`<button class="btn danger sm" data-act="trRosterDel" data-id="${esc(r.id)}">삭제</button>`:''}</div>`).join('')}</div>`:'<div class="empty">저장된 연수 명단 서식이 없습니다.</div>'}</section></div>`}
 ACT.trOpen=el=>{ui.trainId=el.dataset.id;render();window.scrollTo(0,0)};
@@ -7411,7 +7411,7 @@ function budgetPage(){const all=bAll();const q=String(ui.bQ||'').trim().toLowerC
   const gRows=Object.entries(groups).map(([k,v])=>({name:k,...bSum(v)})).map(x=>({name:x.name,amt:x.amt,sp:x.sp,col:bizColor(x.name)})).sort((a,b)=>b.amt-a.amt);const gMore=gRows.length>12?`외 ${gRows.length-12}개 세부사업`:'';
   const units=[['','소속 없음'],...cfg().departments.map(d=>['dept:'+d.name,d.name]),...[1,2,3,4,5,6].map(g=>['grade:'+g,g+'학년'])];
   return `<div class="pagehead"><div><h1>💰 예산 관리</h1><p>예산 엑셀을 올리면 세부사업·세부항목·원가통계비목·산출내역·예산액·지출액이 들어옵니다. 내가 맡은 예산을 체크하고, 쓸 때마다 ‘+ 사용하기’로 넣으면 집행률이 바로 바뀝니다.</p></div>
-  <div class="actions">${ME.canWrite?`<label class="btn dark" for="bFile">📤 예산 엑셀 올리기</label><input type="file" id="bFile" accept=".xlsx,.csv" hidden data-chg="bFile">`:''}${all.length?'<button class="btn light" data-act="bCsv">CSV 내보내기</button>':''}</div></div>
+  <div class="actions">${ME.canWrite?`<label class="btn dark" for="bFile">📤 예산 엑셀 올리기</label><input type="file" id="bFile" accept=".xlsx,.csv" hidden data-chg="bFile">${tplBtn('bud','btn light')}`:''}${all.length?'<button class="btn light" data-act="bCsv">CSV 내보내기</button>':''}</div></div>
   ${all.length?`<section class="card"><div class="bg-charts">${bDonut(s,'학교 전체')}${bBars(gRows.slice(0,12),'세부사업별 집행률 (예산이 큰 순)',gMore)}${bMonthly(vals('budgetUses'),'월별 사용액 (+ 사용하기)')}</div></section>
   <section class="card" style="margin-top:18px"><div class="head"><div class="actions"><input class="inp" style="max-width:280px" placeholder="🔍 세부사업·항목·산출내역·담당 찾기" value="${esc(ui.bQ||'')}" data-chg="bQ"><span class="seg">${[['all','전체'],['mine','내 예산'],['none','담당 미지정']].map(([v,l])=>`<button class="${view===v?'on':''}" data-act="bView" data-v="${v}">${l}</button>`).join('')}</span></div><span class="muted small">${list.length}/${all.length}개 · ☑ 내 예산을 체크하면 나의 교무실에, 소속(여러 부서 · 학년 · 선생님)을 고르면 그 교무실마다 보입니다</span></div>
   ${bGroupsHTML(groups,{auto:!!q||view!=='all'})}</section>`
@@ -8480,7 +8480,7 @@ function prDraw(){if(!PR)return;const {room,per}=PR;const sk=per.sk;const ed=prC
     ${ed?`<button class="btn light sm" data-act="prRegen">✨ 진도표로 새로 만들기</button><button class="btn dark sm" data-act="prApply">💾 전체 과목 적용</button>`:''}</div>
   <div class="pr-subs">${subs.map(x=>{const q=PR.subjects[x];const L=(q.lines||[]).length;return `<button class="pr-sub ${x===PR.s?'on':''}" data-act="prSub" data-s="${esc(x)}"><b>${esc(x)}${PR.dirty.has(x)?' •':''}</b><small>${q.n??(by[x]||[]).length}시간${L?'':' · 진도 없음'}</small></button>`}).join('')||'<span class="muted">이 학기 시간표에 교과 시간이 없습니다. 시수 맞추기에서 시간표를 먼저 만들어 주세요.</span>'}</div>
   ${PR.s&&prTxbChanged(room,PR.s,o)?`<div class="note warn-note small" style="margin:8px 0">📚 ${esc(PR.s)} 교과서가 <b>${esc(pubLabel(txbOf(room.grade,PR.s))||'미선택')}</b>(으)로 바뀌었습니다. 지금 진도는 예전 교과서(${esc(pubLabel(prPubOf(room,PR.s,o))||'미선택')}) 것입니다.${ed?` <button class="btn dark sm" data-act="prRegen">새 교과서 진도로 바꾸기</button>`:''}</div>`:''}${PR.s?`<div class="pr-info small"><div class="pr-src"><b>${esc(PR.s)}</b> · ${esc(o.src||'')}${o.need!=null?` · 진도 ${o.need}차시 → 시수 ${o.n}시간`:''}${o.log?` · ${esc(prLogText(o))}`:''}${miss>0&&o.lines.length?` · <span style="color:var(--danger)">비어 있는 시간 ${miss}칸</span>`:''}</div>
-    ${ed?`<span class="pr-subact"><label class="btn light sm" for="prFile" title="이 과목 진도표를 파일로 덮어씁니다">📤 ${esc(PR.s)} 진도표 올리기</label><input type="file" id="prFile" hidden accept=".hwp,.hwpx,.xlsx,.csv" data-chg="prUpload"><button class="btn ${sd?'dark':'light'} sm" data-act="prApplySub">✅ ${esc(PR.s)} 적용하기</button></span>`:''}</div>
+    ${ed?`<span class="pr-subact"><label class="btn light sm" for="prFile" title="이 과목 진도표를 파일로 덮어씁니다">📤 ${esc(PR.s)} 진도표 올리기</label><input type="file" id="prFile" hidden accept=".hwp,.hwpx,.xlsx,.csv" data-chg="prUpload">${tplBtn('sy','btn light sm')}<button class="btn ${sd?'dark':'light'} sm" data-act="prApplySub">✅ ${esc(PR.s)} 적용하기</button></span>`:''}</div>
   ${ed?`<div class="pr-tools"><label class="checkline small"><input type="checkbox" data-chg="prSelAll" ${PR.sel.size&&PR.sel.size===o.lines.length?'checked':''}> 전체 선택</label><span class="muted small">${PR.sel.size?`${PR.sel.size}줄 선택`:'줄을 체크한 뒤 ⠿ 를 잡고 끌어 순서를 바꿉니다'}</span><span style="flex:1"></span>
     <button class="btn light sm" data-act="prMove" data-n="-1" ${PR.sel.size?'':'disabled'}>▲ 위로</button><button class="btn light sm" data-act="prMove" data-n="1" ${PR.sel.size?'':'disabled'}>▼ 아래로</button><button class="btn light sm" data-act="prAddRow">＋ 추가</button><button class="btn light sm danger-t" data-act="prDelRows" ${PR.sel.size?'':'disabled'}>🗑 삭제</button></div>`:''}
   <div class="tbl-wrap pr-tw"><table class="tbl pr-tbl"><colgroup>${ed?'<col class="c-ck"><col class="c-gr">':''}<col class="c-no"><col class="c-dt"><col class="c-p"><col><col><col class="c-pg"><col class="c-k"></colgroup><thead><tr>${ed?'<th></th><th></th>':''}<th>#</th><th>날짜</th><th>교시</th><th>단원(차시)</th><th>학습 주제</th><th>쪽 · 준비물</th><th></th></tr></thead><tbody id="prRows">
@@ -8560,7 +8560,7 @@ function txbBodyHTML(g){const subs=txbSubjects(g);if(!subs.length)return '<div c
   return `<div class="txb-in"><div class="txb-bar"><p class="help" style="margin:0;flex:1">${can?'과목마다 교과서를 고르면 반 진도표 · 주간학습 안내의 <b>추천 입력</b>이 그 교과서 진도표로 바뀝니다. <b>✓ 진도표</b> 표시가 있는 교과서는 진도표가 들어 있습니다. 진도표가 없으면 과목 칸의 <b>📤 진도표 올리기</b>로 한글(.hwp · .hwpx) · 엑셀(.xlsx) · CSV 파일을 바로 넣습니다.':'학년부장이 고른 교과서입니다. 주간학습 안내 추천 입력이 이 교과서 진도표로 채워집니다.'}${unset?` <b style="color:var(--danger)">${unset}과목 미선택</b>`:''}</p></div>
   <div class="txb-grid">${subs.map((s,i)=>{const sy=syFind(g,s);const sems=sy&&!sy.builtin?[...new Set((sy.rows||[]).map(x=>+x.sem||1))].sort().map(x=>x+'학기').join('·'):'';
     const st=sy?`<span class="chip ok" title="${esc(sySrcLabel(sy))}">✓ ${sy.builtin?'기본 진도표':`올린 파일${sems?' '+sems:''}`}</span>`:`<span class="chip warn" title="${esc(syMissMsg(g,s))}">${tb[s]?'진도표 없음':'미선택'}</span>`;
-    const up=can&&(!sy||!sy.builtin)?`<label class="txb-up ${sy?'more':''}" for="txbUp${i}" title="한글(.hwp · .hwpx) · 엑셀(.xlsx) · CSV">📤 ${sy?'더 올리기':'진도표 올리기'}</label><input type="file" id="txbUp${i}" hidden accept=".hwp,.hwpx,.xlsx,.csv" data-chg="txbUp" data-g="${esc(g)}" data-s="${esc(s)}">`:'';
+    const up=can&&(!sy||!sy.builtin)?`<label class="txb-up ${sy?'more':''}" for="txbUp${i}" title="한글(.hwp · .hwpx) · 엑셀(.xlsx) · CSV">📤 ${sy?'더 올리기':'진도표 올리기'}</label><input type="file" id="txbUp${i}" hidden accept=".hwp,.hwpx,.xlsx,.csv" data-chg="txbUp" data-g="${esc(g)}" data-s="${esc(s)}">${tplBtn('sy','txb-up more')}`:'';
     const have=txbHave(g,s);const cur=pubNorm(tb[s]||'');
     const hv=have.length?`<div class="txb-have">📘 진도표: ${have.map(h=>`<span class="${pubNorm(h.pub)===cur?'on':''}">${esc(pubLabel(h.pub)||'학교 공통')}${h.builtin?'':' (올린 파일)'}</span>${can&&h.pub&&pubNorm(h.pub)!==cur?`<button type="button" class="txb-use" data-act="txbUse" data-g="${esc(g)}" data-s="${esc(s)}" data-p="${esc(pubLabel(h.pub))}">이 교과서로</button>`:''}`).join(' · ')}</div>`:'';
     return `<div class="txb-it"><b>${esc(s)}</b>${can?txbSelectHTML(g,s,tb[s],`data-chg="txbPick" data-g="${esc(g)}" data-s="${esc(s)}"`,true):`<span>${esc(pubLabel(tb[s])||'미정')}</span>`}<div class="txb-st">${st}${up}</div>${hv}</div>`}).join('')}</div></div>`}
@@ -12174,6 +12174,106 @@ async function caPdfFromCanvases(cvs){const te=new TextEncoder();const chunks=[]
   push(x+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);return new Blob(chunks,{type:'application/pdf'})}
 ACT.caPdf=async()=>{const g=caGrade();const res=caCol()['g'+g+'_res'];if(!res)return;toast('PDF를 만드는 중…');
   try{const blob=await caPdfFromCanvases(caPdfCanvases(caFormData(g,res)));await saveFile(`${new Date().getFullYear()+1}학년도_학급편성_${g}학년.pdf`,blob)}catch(e){console.error(e);toast('PDF를 만들지 못했어요: '+(e.message||e),'warn')}};
+/* ===== 파일 올리기 메뉴의 ‘양식 내려받기’ =====
+   · 한글(.hwpx) 파일을 올리면 표 머리 · 항목 이름만 남기고 적힌 내용을 지운 빈 양식을 학교 저장소에 보관
+   · 보관된 양식이 없으면(처음이거나 .hwp 를 올린 경우) 이 화면이 읽을 수 있는 기본 양식(.hwpx)을 만들어 줌 */
+const TPL_INFO={duty:{n:'업무분장표'},tt:{n:'학급 기본 시간표'},ac:{n:'학사 일정표'},tr:{n:'연수 등록부'},mn:{n:'협의록'},sy:{n:'진도표'},bud:{n:'예산표'}};
+const tplBtn=(k,cls='btn ghost sm')=>`<button type="button" class="${cls}" data-act="tplGet" data-k="${k}" title="${esc(TPL_INFO[k].n)} 빈 양식(.${k==='bud'?'csv':'hwpx'})을 내려받습니다">📄 양식 내려받기</button>`;
+const TPL_LBL=new Set(['계','합계','소계','총계','누계','비고','구분','순','번호','성명','이름','서명','직위','직급','부서','부','담당','담당자','업무','업무내용','업무분장','세부업무','보직','보직명','학년','반','담임','교시','요일','월','화','수','목','금','토','일','시간','과목','교과','단원','차시','학습주제','학습내용','주제','내용','쪽수','쪽','준비물','학기','회의명','협의명','제목','안건','일시','일자','날짜','장소','참석자','참석','협의내용','회의내용','협의사항','결정사항','협의결과','작성자','기록자','대상','기간','행사','일정','학사일정','연수명','연수일시','연수장소','강사','세부사업','세부항목','원가통계비목','산출내역','예산액','지출액','집행률','남','여','인원']);
+function tplIsLabel(t,col,row){const k=String(t||'').replace(/\s+/g,'');if(!k)return true;if(TPL_LBL.has(k))return true;
+  if(/^\d{1,2}\s*월$|^[1-6]\s*학년$|^\d{1,2}\s*교시$|^[월화수목금토일]요일$|^\d{1,2}\s*주$/.test(k))return true;
+  if(col===0&&/^(\d{1,3}|[①-⑳])$/.test(k))return true;
+  if((col===0||row===0)&&/^[가-힣A-Za-z·()]{1,8}(부|실|팀|과)?$/.test(k)&&TPL_LBL.has(k.replace(/[()]/g,'')))return true;
+  return false}
+/* 올린 .hwpx 에서 내용 지우기 */
+function tplBlankHwpx(u8){const files=unzipFiles(u8);const names=Object.keys(files);const td=new TextDecoder();const out={};
+  const isSec=n=>/^Contents\/section\d+\.xml$/i.test(n);
+  for(const n of names){if(!isSec(n)){out[n]=files[n].get();continue}
+    const doc=new DOMParser().parseFromString(td.decode(files[n].get()),'application/xml');    const T=el=>[...el.getElementsByTagNameNS(CA_HPNS,'t')];
+    /* 메모(풍선 도움말) 빼기 */
+    [...doc.getElementsByTagNameNS(CA_HPNS,'fieldBegin')].filter(f=>f.getAttribute('type')==='MEMO').forEach(f=>{const id=f.getAttribute('id');[...doc.getElementsByTagNameNS(CA_HPNS,'fieldEnd')].filter(e=>e.getAttribute('beginIDRef')===id).forEach(e=>e.parentNode&&e.parentNode.remove());f.parentNode&&f.parentNode.remove()});
+    const clr=p=>{p&&[...p.getElementsByTagNameNS(CA_HPNS,'linesegarray')].forEach(x=>x.remove())};
+    for(const tbl of [...doc.getElementsByTagNameNS(CA_HPNS,'tbl')]){
+      const tcs=[...tbl.getElementsByTagNameNS(CA_HPNS,'tc')].filter(tc=>tc.parentNode&&tc.parentNode.parentNode===tbl);
+      const info=tcs.map(tc=>{const a=caKids(tc,'cellAddr')[0],sp=caKids(tc,'cellSpan')[0];return {tc,r:+a.getAttribute('rowAddr'),c:+a.getAttribute('colAddr'),rs:+(sp?.getAttribute('rowSpan')||1),cs:+(sp?.getAttribute('colSpan')||1)}});
+      /* 머리 줄: 첫 줄 + (첫 줄에 합친 칸이 있으면) 둘째 줄 */
+      const head=new Set([0]);if(info.some(x=>x.r===0&&(x.rs>1||x.cs>1))&&+tbl.getAttribute('rowCnt')>3)head.add(1);
+      const ownT=tc=>T(tc).filter(t=>{let p=t.parentNode;while(p&&p!==tc){if(p.localName==='tbl')return false;p=p.parentNode}return true});
+      /* 머리 칸이 ‘순 · 순서 · 번호’ 인 열은 차례 번호를 남김 */const seqCol=new Set(info.filter(x=>head.has(x.r)&&/^(순|순서|번호|연번|no\.?)$/i.test(ownT(x.tc).map(t=>t.textContent).join('').replace(/\s/g,''))).map(x=>x.c));
+      for(const x of info){const own=ownT(x.tc);
+        const txt=own.map(t=>t.textContent).join('');if(head.has(x.r)||tplIsLabel(txt,x.c,x.r)||(seqCol.has(x.c)&&/^\s*\d{1,3}\s*$/.test(txt)))continue;
+        const lab=txt.match(/^\s*([가-힣·\s]{1,10})\s*[:：]/);own.forEach((t,i)=>{t.textContent=i===0&&lab?lab[1].trim()+' : ':''});own.forEach(t=>clr(t.closest('p')))}}
+    /* 표 밖 글: ‘항목 : 내용’ 은 항목만 남김 */
+    for(const p of [...doc.getElementsByTagNameNS(CA_HPNS,'p')]){let q=p.parentNode,inT=false;while(q){if(q.localName==='tbl'){inT=true;break}q=q.parentNode}if(inT)continue;
+      const own=caKids(p,'run').flatMap(r=>caKids(r,'t'));const txt=own.map(t=>t.textContent).join('');if(!txt.trim())continue;
+      const m=txt.match(/^(\s*[□○●◦·\-\d.)]*\s*[가-힣·\s]{1,12}?)\s*[:：]\s*([^:：]*)$/);
+      if(m&&m[2].trim()&&!/\d+\s*(학년|반|명)/.test(m[2])){own.forEach((t,i)=>{t.textContent=i===0?m[1].replace(/\s+$/,'')+' : ':''});clr(p);continue}
+      /* 여러 항목이 한 줄에 있으면: 숫자(학년도 · 연도는 남김)와 이름만 지움 */
+      const blank=v=>v.replace(/(담임|기록자|작성자|성명|이름|담당자|담당|확인자)(\s*[:：(]\s*)([가-힣]{2,4})/g,(a,l,sep,n)=>l+sep+' '.repeat(n.length*2))
+        .replace(/\d+/g,(d,i,all)=>/^20\d\d$/.test(d)&&/^\s*(학년도|년)/.test(all.slice(i+d.length))?d:' '.repeat(Math.max(2,d.length*2)));
+      let ch=false;own.forEach(t=>{const v=blank(t.textContent);if(v!==t.textContent){t.textContent=v;ch=true}});if(ch)clr(p)}
+    out[n]='<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>'+new XMLSerializer().serializeToString(doc).replace(/^<\?xml[^>]*\?>/,'')}
+  /* 미리보기(내용이 보이는 그림 · 글) 비우기 */
+  if(out['Preview/PrvText.txt']!=null)out['Preview/PrvText.txt']='';
+  if(out['Preview/PrvImage.png']!=null)out['Preview/PrvImage.png']=caB64u8('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==');
+  const order=['mimetype',...names.filter(n=>n!=='mimetype')].filter(n=>out[n]!=null);
+  return new Blob([zipStore(order.map(n=>[n,out[n]]))],{type:'application/hwp+zip'})}
+/* 올린 파일을 빈 양식으로 보관 (.hwpx 만 · 실패해도 올리기는 그대로) */
+async function tplKeep(k,f){try{if(!f||!/\.hwpx$/i.test(f.name)||!ME.canWrite)return;const u8=new Uint8Array(await f.arrayBuffer());if(!(u8[0]===0x50&&u8[1]===0x4b))return;
+    const blob=tplBlankHwpx(u8);const name=f.name.replace(/\.hwpx$/i,'')+'_빈양식.hwpx';const ref=await uploadFile(new File([blob],name,{type:'application/hwp+zip'}));
+    const old=S.formTpl?.[k];await store.set('formTpl',k,{k,name,ref,src:f.name,at:Date.now(),by:myName()||''});
+    if(old?.ref?.id&&old.ref.id!==ref.id)dropAssets([old.ref.id])}catch(e){console.warn('양식 보관 실패',e)}}
+
+/* ---- 기본 양식 만들기 (학교 양식이 아직 없을 때) ---- */
+const TPL_W=48000;
+const tplX=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const tplP=(t,o={})=>`<hp:p id="0" paraPrIDRef="${o.pp||'2'}" styleIDRef="0" pageBreak="${o.br?1:0}" columnBreak="0" merged="0"><hp:run charPrIDRef="${o.cp||'21'}">${String(t??'').split('\n').map((x,i)=>(i?'<hp:lineBreak/>':'')+`<hp:t>${tplX(x)}</hp:t>`).join('')}</hp:run></hp:p>`;
+let tplUid=1600000000;
+/* cols: 너비 비율 · rows: [[칸…]] 칸 = 글 | {t,cs,rs,h(머리),al:'l'} · hr: 줄 높이 */
+function tplTable(cols,rows,o={}){const tot=cols.reduce((a,b)=>a+b,0);const W=cols.map(c=>Math.round(c/tot*TPL_W));const H=o.h||2000;
+  const occ={};const trs=rows.map((row,r)=>{let c=0;const tcs=[];for(const v0 of row){while(occ[r+','+c])c++;const v=typeof v0==='object'&&v0?v0:{t:v0};const cs=v.cs||1,rs=v.rs||1;
+      for(let a=0;a<rs;a++)for(let b=0;b<cs;b++)occ[(r+a)+','+(c+b)]=1;const w=W.slice(c,c+cs).reduce((a,b)=>a+b,0);const hh=(v.hh||H)*rs;const head=v.h||(o.head&&r<o.head);
+      tcs.push(`<hp:tc name="" header="${head?1:0}" hasMargin="0" protect="0" editable="0" dirty="0" borderFillIDRef="${head?12:4}"><hp:subList id="" textDirection="HORIZONTAL" lineWrap="BREAK" vertAlign="CENTER" linkListIDRef="0" linkListNextIDRef="0" textWidth="0" textHeight="0" hasTextRef="0" hasNumRef="0">${String(v.t??'').split('\n').map(x=>tplP(x,{pp:v.al==='l'?'2':'1',cp:head?'26':'21'})).join('')}</hp:subList><hp:cellAddr colAddr="${c}" rowAddr="${r}"/><hp:cellSpan colSpan="${cs}" rowSpan="${rs}"/><hp:cellSz width="${w}" height="${hh}"/><hp:cellMargin left="141" right="141" top="141" bottom="141"/></hp:tc>`);c+=cs}
+    return `<hp:tr>${tcs.join('')}</hp:tr>`});
+  const th=rows.length*H;
+  return `<hp:p id="0" paraPrIDRef="1" styleIDRef="0" pageBreak="${o.br?1:0}" columnBreak="0" merged="0"><hp:run charPrIDRef="21"><hp:tbl id="${tplUid++}" zOrder="0" numberingType="TABLE" textWrap="TOP_AND_BOTTOM" textFlow="BOTH_SIDES" lock="0" dropcapstyle="None" pageBreak="CELL" repeatHeader="1" rowCnt="${rows.length}" colCnt="${cols.length}" cellSpacing="0" borderFillIDRef="3" noAdjust="0"><hp:sz width="${TPL_W}" widthRelTo="ABSOLUTE" height="${th}" heightRelTo="ABSOLUTE" protect="0"/><hp:pos treatAsChar="1" affectLSpacing="0" flowWithText="1" allowOverlap="0" holdAnchorAndSO="0" vertRelTo="PARA" horzRelTo="COLUMN" vertAlign="TOP" horzAlign="LEFT" vertOffset="0" horzOffset="0"/><hp:outMargin left="140" right="140" top="140" bottom="140"/><hp:inMargin left="140" right="140" top="140" bottom="140"/>${trs.join('')}</hp:tbl><hp:t/></hp:run></hp:p>`}
+const tplTitle=(t,br)=>tplP(t,{pp:'18',cp:'16',br});
+const tplGap=()=>tplP('');
+function tplDefaultBody(k){const Y=schoolYear();const rng=(n,f)=>[...Array(n)].map((_,i)=>f(i));const DAYS=['월','화','수','목','금'];
+  if(k==='duty'){const posts=['교무','연구','생활','1학년','2학년','3학년','4학년','5학년','6학년'];
+    return tplTitle(`${Y}학년도 업무분장표`)+tplGap()+tplP('1. 보직교사',{cp:'26'})+tplTable([2,...posts.map(()=>1.4)],[['보직',...posts],['성명',...posts.map(()=>'')]],{head:1})
+      +tplGap()+tplP('2. 학년 · 반 담임',{cp:'26'})+tplTable([1.2,...rng(6,()=>2)],[['반',...rng(6,i=>`${i+1}학년`)],...rng(6,r=>[String(r+1),...rng(6,()=>'')])],{head:1})
+      +tplGap()+tplP('3. 부서별 업무분장',{cp:'26'})+tplTable([1.6,1.4,2,6],[['부서','성명','업무','업무 내용'],...rng(18,()=>['','','',{t:'',al:'l'}])],{head:1,h:2200})}
+  if(k==='tt'){let rooms=[];try{rooms=[1,2,3,4,5,6].flatMap(g=>roomsOf(String(g)).map((r,i)=>`${g}-${caRoomNo(r)||i+1}`))}catch(e){}if(!rooms.length)rooms=['1-1','1-2'];
+    const one=(code,br)=>tplP(code,{pp:'1',cp:'18',br})+tplTable([1.3,2,2,2,2,2],[['교시',...DAYS],...rng(6,p=>[`${p+1}교시`,...DAYS.map(()=>'')])],{head:1,h:2600});
+    return tplTitle(`${Y}학년도 학급별 기본 시간표`)+tplP('※ 반 이름(예: 3-2)을 표 바로 위에 한 줄로 적고, 칸에는 과목을 적습니다.',{cp:'22'})+rooms.map((c,i)=>one(c,i>0&&i%3===0)).join(tplGap())
+      +tplTitle('교과전담 시간표',true)+tplP('※ 칸에는 반과 과목 첫 글자를 적습니다. 예: 3-1(과), 5-2(체)',{cp:'22'})+tplTable([1.3,2,2,2,2,2],[[{t:'과학(3~4학년), 체육(5~6학년) 시간표',cs:6}],['교시',...DAYS],...rng(6,p=>[`${p+1}교시`,...DAYS.map(()=>'')])],{head:2,h:2600})}
+  if(k==='ac'){const M1=[3,4,5,6,7,8],M2=[9,10,11,12,1,2];const ev=()=>M1.map(()=>({t:'',al:'l'}));
+    return tplTitle(`${Y}학년도 학사 일정표`)+tplP('※ 칸마다 표시 + 날짜 + 행사를 한 줄씩 적습니다. 예: ● 2 입학식 · ★ 1 삼일절 · ◆ 5.4. 재량휴업일 · ● 14~16 수학여행',{cp:'22'})
+      +tplTable([1,1,1,1,1,1],[M1.map(m=>m+'월'),ev().map(x=>({...x,hh:14000})),M2.map(m=>m+'월'),ev().map(x=>({...x,hh:14000}))],{h:1800})
+      +tplP('★ 공휴일 · 휴업일   ◆ 재량휴업일   ● 학교 행사   ◈ 방학 (예: ◈여름방학: 7.23.~8.17.)',{cp:'22'})}
+  if(k==='tr')return tplTitle('교직원 연수 등록부')+tplGap()+tplP('연수명 : ',{cp:'21'})+tplP('일시 : ',{cp:'21'})+tplP('장소 : ',{cp:'21'})+tplP('대상 : ',{cp:'21'})+tplGap()
+      +tplTable([0.8,1.6,1.8,1.8,0.8,1.6,1.8,1.8],[['순','구분','성명','서명','순','구분','성명','서명'],...rng(20,r=>[String(r+1),'','','',String(r+21),'','',''])],{head:1,h:2000});
+  if(k==='mn')return tplTitle('협 의 록')+tplGap()+tplTable([1.4,5],[['회의명',''],['일시',''],['장소',''],['참석자',{t:'',al:'l',hh:3200}],['안건',{t:'',al:'l'}],['협의 내용',{t:'',al:'l',hh:22000}],['결정 사항',{t:'',al:'l',hh:8000}]].map(r=>[{t:r[0],h:1},r[1]]),{h:2400});
+  if(k==='sy')return tplTitle('○○과 진도표 ( 학년 )')+tplP('※ 차시는 숫자로, 2차시짜리는 3~4 처럼 적습니다. 학기 칸은 비워 두면 1학기로 읽습니다.',{cp:'22'})
+      +tplTable([0.8,2.6,1,4,1,1.8],[['학기','단원','차시','학습 주제','쪽수','준비물'],...rng(28,()=>['','','',{t:'',al:'l'},'',''])],{head:1,h:1900});
+  return ''}
+async function tplBuildDefault(k){const files=unzipFiles(caB64u8(CA_HWPX_B64));const names=Object.keys(files);const td=new TextDecoder();
+  const sec=td.decode(files['Contents/section0.xml'].get());const open=sec.slice(0,sec.indexOf('>',sec.indexOf('<hs:sec'))+1);
+  const doc=new DOMParser().parseFromString(sec,'application/xml');const p0=caKids(doc.documentElement,'p')[0].cloneNode(true);
+  [...p0.getElementsByTagNameNS(CA_HPNS,'t')].forEach(t=>t.remove());caKids(p0,'linesegarray').forEach(x=>x.remove());
+  const xml=open+new XMLSerializer().serializeToString(p0).replace(/ xmlns:\w+="[^"]*"/g,'')+tplDefaultBody(k)+'</hs:sec>';
+  const out={};names.forEach(n=>out[n]=files[n].get());out['Contents/section0.xml']=xml;out['Preview/PrvText.txt']='';
+  if(out['Preview/PrvImage.png']!=null)out['Preview/PrvImage.png']=caB64u8('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==');
+  const order=['mimetype',...names.filter(n=>n!=='mimetype')];return new Blob([zipStore(order.map(n=>[n,out[n]]))],{type:'application/hwp+zip'})}
+ACT.tplGet=async el=>{const k=el.dataset.k;const I=TPL_INFO[k];if(!I)return;
+  if(k==='bud'){await saveFile('예산표_양식.csv',new Blob(['﻿세부사업,세부항목,원가통계비목,산출내역,예산액,지출액\n'],{type:'text/csv'}));return}
+  const t=S.formTpl?.[k];
+  if(t?.ref?.url){try{const b=await assetBlob(t.ref.url,t.name);await saveFile(t.name,b);toast(`학교에서 올린 ‘${t.src||t.name}’의 빈 양식을 받았습니다.`);return}catch(e){console.warn(e);toast('보관한 양식을 받지 못해 기본 양식을 드립니다.','warn')}}
+  try{const b=await tplBuildDefault(k);await saveFile(`${I.n}_양식.hwpx`,b)}catch(e){console.error(e);toast('양식을 만들지 못했습니다: '+(e.message||e),'warn')}};
+/* 올리기 처리 앞에서 원본을 빈 양식으로 보관 */
+[['dutyFile','duty'],['ttFile','tt'],['acFile','ac'],['trRosterFile','tr'],['mnFile','mn'],['txbUp','sy'],['prUpload','sy']].forEach(([h,k])=>{const o=CHG[h];if(!o)return;CHG[h]=el=>{const f=el.files&&el.files[0];if(f)tplKeep(k,f);return o(el)}});
+
 
 
 boot();
