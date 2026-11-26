@@ -265,7 +265,7 @@ h1,h2,h3{text-wrap:balance}
 .tt th{font-size:calc(18px * var(--fs,1));padding:7px;background:var(--surface2);border-radius:7px;font-weight:800}
 .tt td{height:76px;vertical-align:top}
 .ttc{height:100%;min-height:70px;width:100%;border:1px solid var(--line);border-radius:8px;padding:6px;text-align:left;background:var(--surface);display:flex;flex-direction:column;align-items:flex-start;gap:3px;overflow:hidden}
-.ttc:hover{outline:2px solid var(--accent)}
+.ttc:hover{outline:2px solid var(--accent)}.ttc.tt-dnd{cursor:grab;touch-action:manipulation;-webkit-user-select:none;user-select:none}body.tt-dragging,body.tt-dragging *{cursor:grabbing!important}.ttc.tt-src{opacity:.45;outline:2px dashed var(--accent)}.ttc.tt-over{outline:3px solid var(--accent)!important;outline-offset:-3px;transform:scale(1.03)}.tt-ghost{position:fixed;z-index:3000;pointer-events:none;padding:6px 12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .ttc small{font-size:calc(15.75px * var(--fs,1))}
 .ttc.glow{border:2px solid var(--sky);box-shadow:0 0 0 3px var(--sky-soft),0 0 14px var(--sky);background:var(--sky-soft)}
 .ttc.overlap{border:2px solid var(--violet)}
@@ -3317,14 +3317,14 @@ function timetablePanel(g,opt={}){const rooms=roomsOf(g);const wk=dk(ui.ttWeek);
   const bl=bellFor(g);let body='';for(const p of ttPeriods(g)){const bt=bl.find(x=>x.p===p);body+=`<tr><th>${p}교시${bt?`<br><small class="muted" style="font-weight:600">${esc(bt.s)}</small>`:''}</th>`;for(const day of days){
     const gf=cellFlags(rooms,slots,day,p);
     if(!ui.merge){const v=slots[skey(active.id,day,p)];const item=v?{...v,grade:g,room:active.id,date:day,period:p}:null;const cf=conflictsFor(item,all);const au=auraAttr([cf.length&&'conflict',gf.same&&'overlap',gf.noSpecial&&'glow']);
-      body+=`<td><button class="ttc ${au.cls}" title="${cf.length?esc('중복 배정: '+cf.map(x=>officeLabel(x.grade)+' '+roomName(x.room)+' '+x.subject).join(', ')):gf.same?'모든 반이 같은 과목':gf.noSpecial?'모든 반에 교담·강사 시간이 없음':''}" style="${v?`background:${subjColor(v.subject+'|'+(v.special?v.teacher:''))};`:''}${au.st}" data-act="slot" data-date="${day}" data-p="${p}" data-room="${active.id}">${au.dots}${v?`<b>${esc(v.subject)}</b><small>${esc(v.teacher||'')}</small>${v.special?`<span class="tpill">${esc(v.special)}</span>`:''}${v.native?'<span class="tpill nat">원어민</span>':''}${v.law?`<span class="tpill law" title="${esc(v.law)}">⚖ 법정</span>`:''}${v.ev?`<span class="tpill ev" title="${esc(v.ev)}">★ 행사</span>`:''}${(()=>{const l=typeof prCellLine==='function'?prCellLine(active,day,p):null;return l&&l.title?`<small class="tprog" title="${esc((l.unit||'')+' '+l.title)}">${esc(String(l.title).replace(/^☞/,''))}</small>`:''})()}`:'<span class="muted small">+ 입력</span>'}${cf.length?'<small class="cf">⚠ 교담·강사 충돌</small>':''}</button></td>`}
+      body+=`<td><button class="ttc ${au.cls} ${ME.canWrite?'tt-dnd':''}" title="${cf.length?esc('중복 배정: '+cf.map(x=>officeLabel(x.grade)+' '+roomName(x.room)+' '+x.subject).join(', ')):gf.same?'모든 반이 같은 과목':gf.noSpecial?'모든 반에 교담·강사 시간이 없음':''}" style="${v?`background:${subjColor(v.subject+'|'+(v.special?v.teacher:''))};`:''}${au.st}" data-act="slot" data-date="${day}" data-p="${p}" data-room="${active.id}">${au.dots}${v?`<b>${esc(v.subject)}</b><small>${esc(v.teacher||'')}</small>${v.special?`<span class="tpill">${esc(v.special)}</span>`:''}${v.native?'<span class="tpill nat">원어민</span>':''}${v.law?`<span class="tpill law" title="${esc(v.law)}">⚖ 법정</span>`:''}${v.ev?`<span class="tpill ev" title="${esc(v.ev)}">★ 행사</span>`:''}${(()=>{const l=typeof prCellLine==='function'?prCellLine(active,day,p):null;return l&&l.title?`<small class="tprog" title="${esc((l.unit||'')+' '+l.title)}">${esc(String(l.title).replace(/^☞/,''))}</small>`:''})()}`:'<span class="muted small">+ 입력</span>'}${cf.length?'<small class="cf">⚠ 교담·강사 충돌</small>':''}</button></td>`}
     else{const items=rooms.map(r=>{const v=slots[skey(r.id,day,p)];return {r,v:v?{...v,grade:g,room:r.id,date:day,period:p}:null}});const cfc=items.filter(x=>x.v&&conflictsFor(x.v,all).length).length;
       const {noSpecial,same}=gf;
       const au=auraAttr([cfc&&'conflict',same&&'overlap',noSpecial&&'glow']);
       body+=`<td><button class="ttc ${au.cls}" style="${au.st}" data-act="slot" data-date="${day}" data-p="${p}" data-room="${rooms[0].id}">${au.dots}${items.filter(x=>x.v).map(({r,v})=>`<small class="subj" style="background:${subjColor(v.subject+'|'+(v.special?v.teacher:''))}"><b>${esc(String(r.name).replace(/^\d+학년\s*/,''))}</b> ${esc(v.subject)}${v.special?' · '+esc(v.special):''}${v.native?' · 원어민':''}</small>`).join('')||(noSpecial?'<small>✨ 교담·강사 없음</small>':'')}${cfc?`<small class="cf">⚠ ${cfc}건 충돌</small>`:''}</button></td>`}}
     body+='</tr>'}
   return `<section class="card"><div class="head"><h2>🗓️ 주간 학급 시간표</h2><div class="tools"><button class="btn gray sm" data-act="ttWeek" data-n="-1">← 전주</button><b class="tnum">${esc(fmtD(wk))} 주간</b><button class="btn gray sm" data-act="ttWeek" data-n="1">다음 주 →</button><button class="btn gray sm" data-act="ttWeek" data-n="0">이번 주</button></div></div>
-  <div class="actions" style="margin-bottom:10px"><button class="btn gray sm" data-act="roomNav" data-n="-1" ${ui.merge?'disabled':''} aria-label="이전 반">◀</button>${ui.merge?`<b>전체 ${rooms.length}개 반 합쳐 보기</b>`:`<select class="inp tt-room-sel" data-chg="roomPick" aria-label="반 고르기">${rooms.map((r,i)=>`<option value="${i}" ${i===ui.roomIdx?'selected':''}>${esc(r.name)}</option>`).join('')}</select>`}<button class="btn gray sm" data-act="roomNav" data-n="1" ${ui.merge?'disabled':''} aria-label="다음 반">▶</button><button class="btn sm ${ui.merge?'':'light'}" data-act="ttMerge">${ui.merge?'반별 보기':'합쳐 보기'}</button><button class="btn gray sm w" data-act="ttCopy">↺ 전주 시간표 가져오기</button><button class="btn gray sm" data-act="ttAudit">전체 충돌 점검</button>${opt.curri?'':'<button class="btn dark sm" data-act="placeOpen" title="강좌를 등록하고 빈 자리에 강사를 배정합니다">🧑‍🏫 강사 강좌 등록</button>'}<button class="btn light sm" data-act="exportTT">CSV</button></div>
+  <div class="actions" style="margin-bottom:10px"><button class="btn gray sm" data-act="roomNav" data-n="-1" ${ui.merge?'disabled':''} aria-label="이전 반">◀</button>${ui.merge?`<b>전체 ${rooms.length}개 반 합쳐 보기</b>`:`<select class="inp tt-room-sel" data-chg="roomPick" aria-label="반 고르기">${rooms.map((r,i)=>`<option value="${i}" ${i===ui.roomIdx?'selected':''}>${esc(r.name)}</option>`).join('')}</select>`}<button class="btn gray sm" data-act="roomNav" data-n="1" ${ui.merge?'disabled':''} aria-label="다음 반">▶</button><button class="btn sm ${ui.merge?'':'light'}" data-act="ttMerge">${ui.merge?'반별 보기':'합쳐 보기'}</button><button class="btn gray sm w" data-act="ttCopy">↺ 전주 시간표 가져오기</button><button class="btn gray sm" data-act="ttAudit">전체 충돌 점검</button>${opt.curri?'':'<button class="btn dark sm" data-act="placeOpen" title="강좌를 등록하고 빈 자리에 강사를 배정합니다">🧑‍🏫 강사 강좌 등록</button>'}<button class="btn light sm" data-act="exportTT">CSV</button></div>${!ui.merge&&ME.canWrite?'<p class="help tt-dnd-help" style="margin:-4px 0 10px">✋ 과목 칸을 <b>끌어서</b> 다른 칸에 놓으면 두 과목이 서로 바뀝니다. (태블릿은 칸을 길게 누른 뒤 끌기)</p>':''}
   ${usesBase(g,wk)?`<div class="editbar" style="background:var(--sky-soft);color:var(--sky)">🗓️ 이 주는 <b>&nbsp;학급 기본 시간표&nbsp;</b>가 적용되어 있습니다. 칸을 고치면 이 주만 바뀝니다. ${canBase()?'<button class="link" data-act="go" data-page="basett">기본 시간표 관리 →</button>':''}</div>`:''}${typeof wgBannerHTML==='function'&&!ui.merge?wgBannerHTML(g,active,opt.curri):''}<div class="tt-wrap"><table class="tt"><thead><tr><th>교시</th>${days.map(d=>{const h=typeof scCats==='function'?(()=>{const c=scCats();return c.hol.get(d)||(c.vac.has(d)?'방학':'')})():'';return `<th class="${h?'tt-hol':''}">${WD[parseD(d).getDay()]}<br><span class="tnum">${d.slice(5).replace('-','/')}</span>${h?`<small class="tt-holn">${esc(h)}</small>`:''}</th>`}).join('')}</tr></thead><tbody>${body}</tbody></table></div>
   <div class="tt-legend aura-checks" role="group" aria-label="아우라 표시 선택"><b>아우라 표시</b>${AURA_KINDS.map(([k,cl,l])=>`<label class="aura-chk"><input type="checkbox" data-chg="auraToggle" data-k="${k}" ${auraOn(k)?'checked':''}><i class="lg ${cl}"></i>${l}</label>`).join('')}<span><i class="lg soft"></i>그 밖의 수업 (과목·강사별 색, 50% 흐리게)</span></div><p class="help">체크한 항목만 시간표에 아우라로 표시됩니다(이 기기에 기억). 한 칸에 여러 조건이 겹치면 해당 색이 모두 돌아가며 함께 빛나고, 칸 위쪽에 색 점으로도 표시됩니다. 반별 보기와 합쳐 보기 모두 학년 전체 반을 기준으로 판단합니다. 같은 교담·강사를 같은 날짜·교시에 다른 반(다른 학년 포함)에 넣으면 저장을 막습니다.</p></section>`}
 
@@ -3750,6 +3750,36 @@ FORM.slot=async f=>{const g=curGrade();const date=f.dataset.date,p=+f.dataset.p;
   const wk=dk(weekStart(parseD(date)));const cf=conflictsFor({subject,teacher,special,grade:g,room,date,period:p},slotsInWeek(wk));
   if(cf.length){info('시간표 충돌',`${fmtD(date)} ${p}교시\n${teacher} 선생님이 이미 다음 수업에 배정되어 있어 저장하지 않았습니다.\n\n`+cf.map(x=>`- ${officeLabel(x.grade)} ${roomName(x.room)} (${x.subject})`).join('\n'));return}
   if(await guard(()=>store.merge('tt',ttId(g,wk),{slots:{[skey(room,date,p)]:{subject,teacher,special,prog:null,native:d.native?true:null,si:null}}},ttBase(g,wk)),'저장했습니다.')){closeModal();instTaskSync(g,date)}};
+/* ===== 주간 학급 시간표: 과목 칸을 끌어서 다른 칸에 놓으면 서로 바뀜 (마우스 · 터치 길게 누르기) ===== */
+(function(){let st=null,ghost=null,over=null,swallow=false;
+  const cellOf=el=>el&&el.closest&&el.closest('.tt-dnd');
+  const clear=()=>{if(ghost){ghost.remove();ghost=null}if(over){over.classList.remove('tt-over');over=null}document.body.classList.remove('tt-dragging');if(st&&st.el)st.el.classList.remove('tt-src');clearTimeout(st&&st.lp);st=null};
+  const begin=()=>{if(!st||st.on)return;st.on=true;st.el.classList.add('tt-src');document.body.classList.add('tt-dragging');
+    ghost=document.createElement('div');ghost.className='tt-ghost';ghost.textContent=st.el.querySelector('b')?.textContent||'빈 칸';document.body.appendChild(ghost);move(st.x,st.y)};
+  const move=(x,y)=>{if(ghost){ghost.style.left=x+12+'px';ghost.style.top=y+12+'px'}const t=cellOf(document.elementFromPoint(x,y));if(t!==over){if(over)over.classList.remove('tt-over');over=t&&t!==st.el?t:null;if(over)over.classList.add('tt-over')}};
+  document.addEventListener('pointerdown',e=>{const c=cellOf(e.target);if(!c||e.button>0)return;st={el:c,x:e.clientX,y:e.clientY,id:e.pointerId,touch:e.pointerType!=='mouse',on:false};
+    if(st.touch)st.lp=setTimeout(()=>{if(st){begin();try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}}},350)},true);
+  document.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const d=Math.hypot(e.clientX-st.x,e.clientY-st.y);
+    if(!st.on){if(st.touch){if(d>10){clearTimeout(st.lp);st=null}return}if(d>6)begin();else return}
+    e.preventDefault();st.x=e.clientX;st.y=e.clientY;move(e.clientX,e.clientY)},{capture:true,passive:false});
+  document.addEventListener('touchmove',e=>{if(st&&st.on)e.preventDefault()},{passive:false});
+  document.addEventListener('pointerup',e=>{if(!st||e.pointerId!==st.id)return;const a=st.el,b=over,was=st.on;clear();if(!was)return;swallow=true;setTimeout(()=>swallow=false,400);if(b)ttSwap(a.dataset,b.dataset)},true);
+  document.addEventListener('pointercancel',()=>clear(),true);
+  document.addEventListener('click',e=>{if(swallow&&cellOf(e.target)){e.stopPropagation();e.preventDefault();swallow=false}},true);
+  document.addEventListener('dragstart',e=>{if(cellOf(e.target))e.preventDefault()},true);
+  document.addEventListener('contextmenu',e=>{if(st&&st.on)e.preventDefault()},true)})();
+async function ttSwap(A,B){const g=curGrade();if(!ME.canWrite){toast('보기 전용 권한입니다.','warn');return}
+  const room=A.room;if(B.room!==room)return;const d1=A.date,p1=+A.p,d2=B.date,p2=+B.p;if(d1===d2&&p1===p2)return;
+  const wk=dk(weekStart(parseD(d1)));if(dk(weekStart(parseD(d2)))!==wk)return;
+  const a=slotAt(g,room,d1,p1),b=slotAt(g,room,d2,p2);if(!a&&!b)return;
+  const k1=skey(room,d1,p1),k2=skey(room,d2,p2);
+  const others=slotsInWeek(wk).filter(x=>!(x.grade===g&&x.room===room&&((x.date===d1&&+x.period===p1)||(x.date===d2&&+x.period===p2))));
+  const cf=[...(a?conflictsFor({...a,grade:g,room,date:d2,period:p2},others).map(y=>[a,d2,p2,y]):[]),...(b?conflictsFor({...b,grade:g,room,date:d1,period:p1},others).map(y=>[b,d1,p1,y]):[])];
+  if(cf.length){info('바꿀 수 없습니다','교담 · 강사 선생님이 그 시간에 이미 다른 수업이 있습니다.\n\n'+cf.map(([s,d,p,y])=>`- ${s.teacher} (${s.subject}) → ${fmtD(d)} ${p}교시: ${officeLabel(y.grade)} ${roomName(y.room)} ${y.subject}`).join('\n'));return}
+  const mv=s=>s?{...s,prog:null,si:null}:null;
+  const lbl=(s,d,p)=>`${fmtD(d)} ${p}교시 ${s?s.subject:'빈 칸'}`;
+  if(await guard(()=>store.merge('tt',ttId(g,wk),{slots:{[k1]:mv(b),[k2]:mv(a)}},ttBase(g,wk)),b&&a?`${lbl(a,d1,p1)} ↔ ${lbl(b,d2,p2)} 바꿨습니다.`:'과목을 옮겼습니다.')){instTaskSync(g,d1);if(d2!==d1)instTaskSync(g,d2)}}
+
 ACT.slotErase=async el=>{const f=el.closest('form');const g=curGrade();const date=el.dataset.date,p=+el.dataset.p;const room=f.elements.room.value;const wk=dk(weekStart(parseD(date)));
   if(!slotAt(g,room,date,p)){closeModal();return}
   if(await guard(()=>store.merge('tt',ttId(g,wk),{slots:{[skey(room,date,p)]:null}},ttBase(g,wk)),'비웠습니다.')){closeModal();instTaskSync(g,date)}};
@@ -6059,21 +6089,51 @@ const cloudOn=()=>!!(CLOUD&&DB&&DB.isCloud);
 /* 교무실 화면이 구글 Apps Script 웹 앱에서 바로 열렸는지 */
 const IN_GAS=(()=>{try{return !!(window.google&&google.script&&google.script.run)}catch(e){return false}})();
 let GAS_VIA_FETCH=!!window.__GAS_VIA_FETCH;
-function gasRun(body){const t=body.op==='asset'||body.op==='bulk'||body.op==='upload'?90000:body.op==='ping'?12000:body.op==='claim'?45000:25000;
+function gasRun(body){const t=body.op==='asset'||body.op==='bulk'||body.op==='upload'?90000:body.op==='ping'?15000:body.op==='boot'?70000:body.op==='claim'||body.op==='pull'?45000:30000;
   return Promise.race([gasRun0(body),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('구글 서버 응답이 없습니다.'),{code:'timeout'})),t))])}
 function gasRun0(body){return new Promise((res,rej)=>{try{google.script.run.withSuccessHandler(t=>{try{res(JSON.parse(t))}catch(e){rej(e)}}).withFailureHandler(e=>rej(Object.assign(new Error((e&&e.message)||'구글 서버 오류'),{code:'net'}))).api(JSON.stringify(body))}catch(e){rej(e)}})}
 function cloudValidUrl(u){try{const x=new URL(String(u||'').trim());return x.protocol==='https:'&&/(^|\.)script\.google(usercontent)?\.com$/.test(x.hostname)?x.href:(x.protocol==='http:'&&/^(localhost|127\.0\.0\.1)$/.test(x.hostname)?x.href:null)}catch(e){return null}}
 
+/* ===== 클라우드 호출 (끊김 줄이기) =====
+   · 구글 서버가 잠깐 늦거나 실패하면 같은 길로 한 번 더 → 그래도 안 되면 웹 앱 주소로 직접 (되는 길만 기억, 10분 뒤 다시 원래 길 시도)
+   · ‘로그인이 끝났다’는 답이 와도 바로 내보내지 않음: 막 로그인했으면 잠깐 기다렸다 다시(구글 저장소 반영 지연),
+     아니면 구글 계정 자동 확인 · 이 기기 열쇠로 조용히 다시 들어오고, 모두 안 될 때만 로그인 화면으로 */
+let GAS_FETCH_AT=0,CLOUD_REAUTH=null,CLOUD_AUTH_FAILS=0;
+const cloudSleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function cloudRaw(op,body,c){
+  if(c.gas){if(GAS_VIA_FETCH&&Date.now()-GAS_FETCH_AT>600000&&!window.__GAS_VIA_FETCH)GAS_VIA_FETCH=false;
+    if(!GAS_VIA_FETCH){let err;for(let k=0;k<2;k++){try{return await gasRun(body)}catch(e){err=e;if(e.code!=='timeout'&&e.code!=='net')throw e;if(k===0)await cloudSleep(1200)}}
+      if(!window.SOP_EXEC)throw err;
+      try{const j=await cloudFetch(window.SOP_EXEC,body);GAS_VIA_FETCH=true;GAS_FETCH_AT=Date.now();console.warn('google.script.run 응답 없음 → 웹 앱 주소로 직접 연결');return j}catch(e2){throw err}}
+    try{return await cloudFetch(window.SOP_EXEC,body)}catch(e){if(e.code==='net'||e.code==='bad'){GAS_VIA_FETCH=!!window.__GAS_VIA_FETCH;if(!GAS_VIA_FETCH)return await gasRun(body)}throw e}}
+  let last;for(let k=0;k<2;k++){try{return await cloudFetch(c.url,body)}catch(e){last=e;if(e.code!=='net')throw e;await cloudSleep(1500)}}throw last}
+async function cloudFetch(furl,body){let r;try{r=await fetch(furl,{method:'POST',body:JSON.stringify(body),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'})}
+  catch(e){throw Object.assign(new Error('클라우드에 연결하지 못했습니다. 인터넷 연결과 웹 앱 주소를 확인해 주세요.'),{code:'net'})}
+  try{return await r.json()}catch(e){throw Object.assign(new Error('클라우드 응답을 읽지 못했습니다. 웹 앱 배포 설정(액세스: 모든 사용자)을 확인해 주세요.'),{code:'bad'})}}
+/* 조용히 다시 로그인: 새 열쇠를 받으면 true */
+function cloudReauth(){if(CLOUD_REAUTH)return CLOUD_REAUTH;
+  CLOUD_REAUTH=(async()=>{const t=cloudTok()||{};const em=String(t.email||UID||LS.get('sop_cloud_email')||'').toLowerCase();const c=CLOUD||cloudConf();if(!c)return false;
+    const save=j=>{if(j&&j.ok&&j.token){LS.set(CLOUD_TOK_KEY,{token:j.token,email:j.email||(j.me&&j.me.email)||em,at:Date.now()});return true}return false};
+    let noSso=false;try{noSso=sessionStorage.getItem('sop_nosso')==='1'}catch(e){}
+    if(c.gas&&!noSso){try{const j=await cloudRaw('sso',{op:'sso'},c);if(j.ok&&(!em||String(j.email||'').toLowerCase()===em)&&save(j))return true}catch(e){}}
+    const dk=em&&devKeys()[em];if(dk){try{const j=await cloudRaw('devLogin',{op:'devLogin',email:em,dkey:dk},c);if(save(j))return true}catch(e){}}
+    return false})().finally(()=>setTimeout(()=>{CLOUD_REAUTH=null},3000));
+  return CLOUD_REAUTH}
 async function cloudCall(op,data={},{url,auth=true}={}){
   const c=url?{url}:(CLOUD||cloudConf());if(!c||!c.url)throw Object.assign(new Error('클라우드가 연결되어 있지 않습니다.'),{code:'conf'});
-  const body={op,...data};const t=cloudTok();if(auth&&t&&t.token)body.token=t.token;
-  if(c.gas&&!GAS_VIA_FETCH){let j;try{j=await gasRun(body)}catch(e){if((e.code==='timeout'||e.code==='net')&&window.SOP_EXEC){GAS_VIA_FETCH=true;console.warn('google.script.run 응답 없음 → 웹 앱 주소로 직접 연결');return cloudCall(op,data,{url,auth})}throw e}if(!j.ok){const e=new Error(j.error||'클라우드 오류');e.code=j.code||'';if(e.code==='auth'&&auth)cloudAuthLost();throw e}return j}
-  const furl=c.gas?window.SOP_EXEC:c.url;
-  let r;try{r=await fetch(furl,{method:'POST',body:JSON.stringify(body),headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow'})}
-  catch(e){throw Object.assign(new Error('클라우드에 연결하지 못했습니다. 인터넷 연결과 웹 앱 주소를 확인해 주세요.'),{code:'net'})}
-  let j;try{j=await r.json()}catch(e){throw Object.assign(new Error('클라우드 응답을 읽지 못했습니다. 웹 앱 배포 설정(액세스: 모든 사용자)을 확인해 주세요.'),{code:'bad'})}
-  if(!j.ok){const e=new Error(j.error||'클라우드 오류');e.code=j.code||'';if(e.code==='auth'&&auth)cloudAuthLost();throw e}
-  return j}
+  for(let tryN=0;;tryN++){
+    const body={op,...data};const t=cloudTok();if(auth&&t&&t.token)body.token=t.token;
+    const j=await cloudRaw(op,body,url?{url}:c);
+    if(j.ok){if(auth)CLOUD_AUTH_FAILS=0;return j}
+    const e=new Error(j.error||'클라우드 오류');e.code=j.code||'';
+    if(e.code==='auth'&&auth&&!url&&t&&t.token&&tryN<4){
+      /* 막 받은 열쇠: 구글 저장소에 아직 안 보일 수 있음 → 조금 기다렸다 같은 열쇠로 */
+      if(t.at&&Date.now()-t.at<120000&&tryN<3){await cloudSleep(1500*(tryN+1));continue}
+      /* 다른 요청이 이미 새 열쇠를 받았으면 그걸로 */
+      const now=cloudTok();if(now&&now.token&&now.token!==t.token)continue;
+      if(await cloudReauth())continue}
+    if(e.code==='auth'&&auth){if(++CLOUD_AUTH_FAILS>=2||!t||!t.token)cloudAuthLost()}
+    throw e}}
 
 /* --- 저장 계층: store 가 쓰는 DB 와 같은 모양 --- */
 const CloudDB={isCloud:true,subs:{},vers:{},queue:Promise.resolve(),pending:0,timer:null,pulling:false,
@@ -6087,7 +6147,7 @@ const CloudDB={isCloud:true,subs:{},vers:{},queue:Promise.resolve(),pending:0,ti
     if(priv){if(kind==='del')delete P[id];else P[id]=kind==='update'?deepMerge(P[id],data):data}
     else{RAW[col]=RAW[col]||{};if(kind==='del')delete RAW[col][id];else RAW[col][id]=kind==='update'?deepMerge(RAW[col][id],data):data;rebuild(col);if(col==='config')rebuildYearly()}
     schedule();CloudDB.pending++;cloudBadge();
-    const job=CloudDB.queue.then(()=>cloudCall('write',{kind,col:priv?'':col,id,data,priv}));
+    const job=CloudDB.queue.then(async()=>{for(let k=0;;k++){try{return await cloudCall('write',{kind,col:priv?'':col,id,data,priv})}catch(e){if(k<3&&(e.code==='net'||e.code==='timeout'||e.code==='bad'||/Service|서비스|시간|timed? ?out|lock|잠금/i.test(e.message||''))){await cloudSleep(1500*(k+1));continue}throw e}}});
     CloudDB.queue=job.catch(()=>{}).finally(()=>{CloudDB.pending--;cloudBadge();if(!CloudDB.pending)CloudDB.soon(400)});
     return job.catch(e=>{CloudDB.vers={};CloudDB.soon(200);throw e})},
   async claim(col,id,key,value,base){await CloudDB.queue;const j=await cloudCall('claim',{col,id,key,value,base});CloudDB.soon(200);return j.result},
@@ -6136,7 +6196,7 @@ async function cloudBoot(){
     try{const p=await cloudCall('ping',{},{auth:false});Object.assign(CLOUD,{domain:p.domain,school:p.school,logo:p.logo,appUrl:p.url})}catch(e){CLOUD.err=e.message}
     const t=cloudTok();if(t&&t.token){try{const j=await cloudCall('whoami');await cloudStart(j.me);return true}catch(e){}}
     let noSso=false;try{noSso=sessionStorage.getItem('sop_nosso')==='1'}catch(e){}
-    if(!noSso){try{const j=await cloudCall('sso',{},{auth:false});LS.set(CLOUD_TOK_KEY,{token:j.token,email:j.email});await cloudStart(j.me);return true}catch(e){}}
+    if(!noSso){try{const j=await cloudCall('sso',{},{auth:false});LS.set(CLOUD_TOK_KEY,{token:j.token,email:j.email,at:Date.now()});await cloudStart(j.me);return true}catch(e){}}
     MODE='cloud-login';UID=null;cloudPreload();return true}
   try{const q=new URLSearchParams(location.search);const u=cloudValidUrl(q.get('cloud'));if(u){LS.set(CLOUD_CONF_KEY,{...(cloudConf()||{}),url:u,owner:(q.get('owner')||cloudConf()?.owner||'').trim().toLowerCase()});history.replaceState(null,'',location.pathname+location.hash)}}catch(e){}
   if(!cloudConf()&&window.SOP_CLOUD&&cloudValidUrl(window.SOP_CLOUD.url))LS.set(CLOUD_CONF_KEY,{url:window.SOP_CLOUD.url,owner:String(window.SOP_CLOUD.owner||'').toLowerCase()});
@@ -6153,7 +6213,7 @@ async function cloudFastBoot(){const t=cloudTok();let noSso=false;try{noSso=sess
   catch(e){if(/알 수 없는 요청/.test(e.message||'')){if(snap){DB=null;MODE='connecting'}return false}if(e.code==='auth'){snapClear();clearTimeout(CloudDB.timer);DB=null;MODE='connecting';UID=null;return false}if(snap){CLOUD.err=e.message;CloudDB.soon(3000);return true}return false}
   if(j.ping)Object.assign(CLOUD,{domain:j.ping.domain,school:j.ping.school,logo:j.ping.logo,appUrl:j.ping.url});
   if(!j.me){if(snap){snapClear();clearTimeout(CloudDB.timer);DB=null}MODE='cloud-login';UID=null;cloudPreload();return true}
-  if(j.token)LS.set(CLOUD_TOK_KEY,{token:j.token,email:j.email||j.me.email});
+  if(j.token)LS.set(CLOUD_TOK_KEY,{token:j.token,email:j.email||j.me.email,at:Date.now()});
   if(!snap||String(snap.email).toLowerCase()!==String(j.me.email).toLowerCase())cloudStartFromSnap({me:j.me,email:j.me.email,raw:{},vers:{}});
   CloudDB.subs&&cloudApplyPull(j.pull||{vers:{},cols:{}});if(SSR('sop_login')===String(UID))SESSION=String(UID);
   clearTimeout(CloudDB.timer);CloudDB.timer=setTimeout(()=>CloudDB.pull(),15000);render();return true}
@@ -6190,7 +6250,7 @@ FORM.cloudId=async f=>{const d=fd(f);const email=String(d.email||'').trim().toLo
     if(dk){try{const j=await cloudCall('devLogin',{email,dkey:dk},{auth:false});return cloudLoggedIn(j,email)}catch(e){if(e.code!=='nodev')throw e;const m=devKeys();delete m[email];LS.set('sop_devkeys',m)}}
     const box=$('#clCodeBox');if(box)box.hidden=false;}
   catch(e){toast(e.message,'warn')}};
-async function cloudLoggedIn(j,email){LS.set(CLOUD_TOK_KEY,{token:j.token,email});LS.set('sop_cloud_email',email);if(j.dkey){const m=devKeys();m[email]=j.dkey;LS.set('sop_devkeys',m)}
+async function cloudLoggedIn(j,email){LS.set(CLOUD_TOK_KEY,{token:j.token,email,at:Date.now()});LS.set('sop_cloud_email',email);if(j.dkey){const m=devKeys();m[email]=j.dkey;LS.set('sop_devkeys',m)}
   try{sessionStorage.removeItem('sop_nosso')}catch(e){}
   while(modalStack.length)closeModal();await cloudStart(j.me,{login:true});go('home');toast(`${j.me.name||email} 선생님, 환영합니다`)}
 function cloudPwModal(){openModal('🔑 교무실 비밀번호 (선택)',`<form data-form="cloudSetPw" class="stack" style="gap:12px">
