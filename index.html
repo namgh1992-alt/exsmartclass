@@ -8514,7 +8514,7 @@ function wgOpen(room,wk,mode,view,edit){WG=wgModel(room,wk,mode);WG.view=!!view;
   const top=WG.edit?`<div class="wg-top"><button class="wg-act-banner save" data-act="wgSave"><span>✍️</span><b>직접 입력 수정하기</b><small id="wgAuto">칸에 입력하면 바로바로 저장 · 누르면 저장하고 마침</small></button><button class="wg-act-banner pr" data-act="prOpenWg"><span>✨</span><b>추천 입력하기</b><small>반 진도표 추천 진도 확인 · 전체 시간표에 적용</small></button></div>`
     :`<div class="wg-top">${can?`<button class="wg-act-banner" data-act="wgEdit"><span>✏️</span><b>진도표 입력하기</b><small>${esc(fmtD(wk))} 주 · 칸을 눌러 단원 · 학습 주제 · 쪽을 고칩니다</small></button>`:''}<button class="btn light" data-act="wgHwp">⬇ 한글</button><button class="btn light" data-act="wgPdf">⬇ PDF</button></div>`;
   const body=`${top}${WG.edit?'<p class="help" style="margin:6px 0">추천 입력하기로 들어온 단원 · 학습 주제 · 쪽을 눌러 고칩니다. <b>과목 칸을 누르고 다른 과목 칸을 누르면</b> 두 시간의 자리가 바뀝니다(진도 내용도 함께 옮겨 감). 고친 내용은 이 주 안내와 반 진도표 · 주간 학급 시간표에 바로 저장됩니다.</p>':'<div style="height:10px"></div>'}${wgPaperHTML(WG,WG.edit)}`;
-  const h=$('#wgBody');if(h){h.innerHTML=body;return}
+  const h=$('#wgBody');if(h){keepScroll(h,()=>{h.innerHTML=body});return}
   openModal(`📝 주간학습 안내 · ${room.name} · ${fmtD(wk)} 주`,`<div id="wgBody">${body}</div>`,{wide:true}).querySelector('.modal')?.classList.add('xwide')}
 ACT.wgOpen=el=>{const {room,wk}=wgRoomWk();if(!room)return;wgOpen(room,wk,'',el.dataset.view==='1'||!prCan(room))};
 ACT.wgEdit=()=>{if(!WG)return;wgOpen(WG.room,WG.wk,'',false,true);setTimeout(()=>$('#wgPaper [contenteditable]')?.focus(),50)};
@@ -8544,6 +8544,11 @@ function prTxbChanged(room,s,o){if(!o||o.custom||!PR||!PR.applied||!(o.lines||[]
 function prOpen(room,per,s){const src=prLinesFor(room,per);PR={room,per,subjects:JSON.parse(JSON.stringify(src.subjects)),applied:src.applied,dirty:new Set(),sel:new Set(),s:s&&src.subjects[s]?s:prFirst(src.subjects)};prDraw()}
 const prFirst=o=>Object.keys(o).find(k=>(o[k].lines||[]).length)||Object.keys(o)[0]||'';
 const prIsDirty=()=>PR&&PR.dirty.size>0;
+/* 창 안을 다시 그려도 보던 자리(스크롤 위치)를 그대로 */
+function keepScroll(host,fn){const box=host.closest('.modal')||host;const outs=[[box,box.scrollTop,box.scrollLeft]];
+  host.querySelectorAll('*').forEach(el=>{if(el.scrollTop||el.scrollLeft)outs.push([el.className&&typeof el.className==='string'?'.'+el.className.trim().split(/\s+/).join('.'):null,el.scrollTop,el.scrollLeft])});
+  const ws=window.scrollY;fn();
+  const rs=()=>{outs.forEach(([el,t,l])=>{const e=typeof el==='string'?host.querySelector(el):el;if(e){e.scrollTop=t;e.scrollLeft=l}});if(window.scrollY!==ws)window.scrollTo(0,ws)};rs();requestAnimationFrame(rs)}
 function prDraw(){if(!PR)return;const {room,per}=PR;const sk=per.sk;const ed=prCan(room);const by=prSlots(room,per);const subs=Object.keys(PR.subjects);const o=PR.subjects[PR.s]||{lines:[]};const cells=by[PR.s]||[];
   o.lines=o.lines||[];const n=Math.max(cells.length,o.lines.length);const miss=cells.length-o.lines.filter(x=>x&&(x.title||x.unit)).length;const sd=PR.dirty.has(PR.s);
   const body=`<div class="pr-top"><div class="seg">${['s1','s2'].map(k=>`<button class="${k===sk?'on':''}" data-act="prSem" data-k="${k}">${per.y?per.y+'학년도 ':''}${k==='s1'?'1학기':'2학기'}</button>`).join('')}</div>
@@ -8559,7 +8564,7 @@ function prDraw(){if(!PR)return;const {room,per}=PR;const sk=per.sk;const ed=prC
     return `<tr class="${c?'':'pr-over'} ${on?'pr-on':''}" data-i="${i}" ${ed&&i<o.lines.length?'draggable="true"':''}>${ed?`<td><input type="checkbox" data-chg="prSel" data-i="${i}" ${on?'checked':''} ${i<o.lines.length?'':'disabled'} aria-label="${i+1}번 줄 선택"></td><td class="pr-grip" title="끌어서 순서 바꾸기">${i<o.lines.length?'⠿':''}</td>`:''}<td class="tnum">${i+1}</td><td class="tnum" style="white-space:nowrap">${c?esc(fmtD(c.date)):'<span class="muted small">시간 없음</span>'}</td><td class="tnum">${c?c.p+'교시':''}</td><td>${inp('unit')}</td><td>${inp('title')}</td><td>${inp('pages')}</td><td>${l.k?`<span class="chip ${l.k==='추가'?'ok':l.k==='수정'?'violet':'warn'}">${esc(l.k)}</span>`:''}</td></tr>`}).join('')}
   </tbody></table></div>`:''}
   <p class="help">진도가 넘치면 ① 단원 도입(흥미유발) ② 마지막 정리 차시를 빼고, 그래도 넘치면 ③ 2차시 활동을 1차시로 합칩니다. 모자라면 단원 뒤에 단원평가 · 심화 · 보충 활동을 넣습니다. 과목마다 ‘적용하기’를 누르면 그 과목 진도가 그 학기 주간학습 안내 · 주간 학급 시간표에 들어갑니다.</p>`;
-  const h=$('#prBody');if(h){h.innerHTML=body;return}
+  const h=$('#prBody');if(h){keepScroll(h,()=>{h.innerHTML=body});return}
   openModal(`✨ 추천 입력하기 · ${room.name}`,`<div id="prBody">${body}</div>`,{wide:true}).querySelector('.modal')?.classList.add('xwide')}
 ACT.prOpen=()=>{const {room,wk}=wgRoomWk();if(!room)return;prOpen(room,prPeriod(room,wk))};
 ACT.prOpenWg=async()=>{if(!WG)return;if(WG.edit){clearTimeout(WG_AUTO);await wgPersist(true)}prOpen(WG.room,prPeriod(WG.room,WG.wk))};
