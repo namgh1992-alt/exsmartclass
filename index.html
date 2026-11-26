@@ -2778,7 +2778,7 @@ function splitYear(pid){const at=pid.lastIndexOf('@');if(at>0&&/^\d{4}$/.test(pi
 function viewOf(col){if(!YEARLY.has(col)){PHYS[col]=null;return RAW[col]}const y=schoolYear();const out={},map={};
   for(const[pid,d] of Object.entries(RAW[col])){if(!d)continue;const {lid,y:yy}=splitYear(pid);if(yy===y){out[lid]=d;map[lid]=pid}else if(col==='memos'&&d.pinned&&!(lid in out)){out[lid]=d;map[lid]=pid}}
   PHYS[col]=map;return out}
-function rebuild(col){S[col]=viewOf(col)}
+function rebuild(col){S[col]=viewOf(col);if(col==='tt'||col==='weekGuides'||col==='progress'||col==='events'){try{PR_CACHE.clear();PR_WK.clear()}catch(e){}}}
 function rebuildYearly(){YEARLY.forEach(rebuild)}
 function physId(col,id){if(!YEARLY.has(col))return id;const m=PHYS[col]&&PHYS[col][id];if(m)return m;const y=schoolYear();return y===legacyYear()?id:id+'@'+y}
 function yearsInData(){const ys=new Set([schoolYear(),legacyYear()]);YEARLY.forEach(c=>Object.keys(RAW[c]).forEach(pid=>ys.add(splitYear(pid).y)));(RAW.config?.main?.years||[]).forEach(y=>ys.add(+y));return [...ys].filter(Boolean).sort((a,b)=>a-b)}
@@ -8490,11 +8490,22 @@ function prWeekMap(room,wk,onlyApplied,subjects){const per=prPeriod(room,wk);if(
 /* --- 주간학습 안내: 하나로 (저장본 → 없으면 진도표로 채움) --- */
 function wgAutoCells(room,wk,subjects){const base=wgBaseCells(room,wk);const m=prWeekMap(room,wk,false,subjects);for(const k in m){const x=m[k];if(base[k]&&x.line){const {unit,title,pages}=x.line;Object.assign(base[k],{unit,title,pages})}}return base}
 function wgModel(room,wk,mode){const g=String(room.grade);const si=wgSemInfo(room,wk);const saved=wgDoc(room,wk);let cells,notes=[];
-  if(saved&&mode!=='auto'){cells=wgFillBase(room,wk,saved.cells||{});mode='saved'}else{cells=wgAutoCells(room,wk);mode='auto';const d=prDoc(room,si.per);notes.push(d?`반 진도표(${fmtTs(d.appliedAt||d.updatedAt)} 적용)로 채웠습니다.`:'반 진도표 추천 진도로 채웠습니다.')}
+  if(saved&&mode!=='auto'){cells=wgSync(room,wk,saved.cells||{});mode='saved'}else{cells=wgAutoCells(room,wk);mode='auto';const d=prDoc(room,si.per);notes.push(d?`반 진도표(${fmtTs(d.appliedAt||d.updatedAt)} 적용)로 채웠습니다.`:'반 진도표 추천 진도로 채웠습니다.')}
   const days=Array.from({length:5},(_,i)=>dk(addDays(parseD(wk),i)));const d0=parseD(days[0]),d4=parseD(days[4]);
   const bl=bellFor(g);const maxP=Math.max(...Object.keys(cells).map(k=>+k.split('~')[1]),...Object.keys(wgBaseCells(room,wk)).map(k=>+k.split('~')[1]),4);
   return {room,wk,g,mode,notes,cells,days,title:saved?.title||'주간학습안내',head:(saved?.head&&!/\(-\d+주\)/.test(saved.head)?saved.head:null)||`<${si.label}> ${d0.getMonth()+1}월 ${d0.getDate()}일 ~ ${d4.getMonth()+1}월 ${d4.getDate()}일 (${si.n}주)`,school:saved?.school||schoolName(),
     notice:saved?.notice??WG_NOTICE,periods:Array.from({length:maxP},(_,i)=>{const b=bl.find(x=>x.p===i+1);return {p:i+1,s:t12(b?.s),e:t12(b?.e)}}),savedAt:saved?.updatedAt||0}}
+/* 저장본을 지금 시간표에 맞춤: 칸의 과목은 늘 주간 학급 시간표를 따르고,
+   저장해 둔 단원 · 학습 주제 · 쪽은 ‘과목을 따라’ 옮겨 감 (그 주 안에서 같은 과목의 1번째 → 1번째, 2번째 → 2번째 …)
+   저장본에 없는 과목 시간은 반 진도표 추천 진도로 채움 */
+const wgOrd=k=>{const [d,p]=String(k).split('~');return (+d)*100+(+p)};
+function wgSync(room,wk,saved){const auto=wgAutoCells(room,wk);const out={};const bySub={},used={};
+  Object.keys(saved||{}).sort((a,b)=>wgOrd(a)-wgOrd(b)).forEach(k=>{const c=saved[k];if(!c||c.off)return;const s=String(c.subject||'').trim();if(s)(bySub[s]=bySub[s]||[]).push(c)});
+  Object.keys(auto).sort((a,b)=>wgOrd(a)-wgOrd(b)).forEach(k=>{const a=auto[k];if(a.off){out[k]=a;return}const s=String(a.subject||'').trim();const q=bySub[s];const i=used[s]||0;
+    if(q&&i<q.length){used[s]=i+1;const c=q[i];out[k]=c.unit||c.title||c.pages?{...a,unit:c.unit||'',title:c.title||'',pages:c.pages||''}:a}else out[k]=a});
+  return out}
+/* 시간표가 바뀌었는지 알아보는 표시 (칸 · 과목 · 교사) */
+function wgTtStamp(room,wk){try{const sl=ttSlots(String(room.grade),wk);let h=0;const str=Object.keys(sl).filter(k=>k.startsWith(room.id+'~')).sort().map(k=>{const v=sl[k];return k+':'+(v?v.subject+'/'+(v.special||''):'')}).join('|');for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))|0;return h}catch(e){return 0}}
 /* 저장본에 과목이 비어 있는 칸(예전 빈 저장)은 시간표 과목 · 진도로 채움 */
 function wgFillBase(room,wk,cells,subjects){const out=JSON.parse(JSON.stringify(cells||{}));const auto=wgAutoCells(room,wk,subjects);
   for(const k in auto){const c=out[k];if(!c||!String(c.subject||'').trim())out[k]={...auto[k],...(c&&(c.unit||c.title||c.pages)?{unit:c.unit||auto[k].unit,title:c.title||auto[k].title,pages:c.pages||auto[k].pages}:{})}}return out}
@@ -8607,9 +8618,9 @@ async function prSyncGuides(room,per,subjects){const R=per.R;if(!R?.start)return
 const prMissing=subjects=>Object.keys(subjects).filter(s=>!(subjects[s].lines||[]).some(l=>l&&(l.title||l.unit)));
 
 /* --- 주간 학급 시간표 칸에 진도 한 줄 --- */
-function prCellLine(room,date,p){try{const wk=dk(weekStart(parseD(date)));const k=`${(parseD(date).getDay()+6)%7}~${p}`;
-  const d=wgDoc(room,wk);if(d){const c=(d.cells||{})[k];return c&&(c.title||c.unit)?{unit:c.unit||'',title:c.title||c.unit||''}:null}
-  const key=`${room.id}|${wk}`;let hit=PR_WK.get(key);if(!hit||Date.now()-hit.t>4000){hit={t:Date.now(),m:prWeekMap(room,wk,true)};PR_WK.set(key,hit)}
+function prCellLine(room,date,p){try{const wk=dk(weekStart(parseD(date)));const k=`${(parseD(date).getDay()+6)%7}~${p}`;const st=wgTtStamp(room,wk);
+  const d=wgDoc(room,wk);if(d){const ck=`wg|${room.id}|${wk}|${st}|${d.updatedAt||0}`;let h=PR_WK.get(ck);if(!h||Date.now()-h.t>4000){h={t:Date.now(),m:wgSync(room,wk,d.cells||{})};PR_WK.set(ck,h)}const c=h.m[k];return c&&!c.off&&(c.title||c.unit)?{unit:c.unit||'',title:c.title||c.unit||''}:null}
+  const key=`${room.id}|${wk}|${st}`;let hit=PR_WK.get(key);if(!hit||Date.now()-hit.t>4000){hit={t:Date.now(),m:prWeekMap(room,wk,true)};PR_WK.set(key,hit)}
   const x=hit.m[k];return x&&x.line?x.line:null}catch(e){return null}}
 const PR_WK=new Map();
 
