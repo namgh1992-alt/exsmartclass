@@ -12023,6 +12023,14 @@ CHG.caN=el=>{const d=caD();const n=Math.max(1,Math.min(40,+el.value||1));d.stu=[
 ACT.caV=el=>{const d=caD();const s=d.stu[+el.dataset.i];const k=el.dataset.k;s.t[k]=(s.t[k]||3)%5+1;el.textContent=s.t[k];el.className=`ca-v v${s.t[k]} ${CA_NEG(k)?'neg':''}`;caAutoSave()};
 ACT.caSx=el=>{const s=caD().stu[+el.dataset.i];s.sx=s.sx==='남'?'여':'남';el.textContent=s.sx;el.className='ca-sx '+(s.sx==='남'?'m':'f');caAutoSave()};
 CHG.caMemo=el=>{caD().stu[+el.dataset.i].memo=el.value.trim();caAutoSave()};
+/* 이름 칸에 여러 줄을 붙여 넣으면 그 칸부터 아래로 차례대로 (엑셀 · 한글 표 · 메모장 모두) */
+document.addEventListener('paste',e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains('ca-name'))return;
+  const txt=(e.clipboardData||window.clipboardData)?.getData('text')||'';const names=txt.replace(/\r/g,'').split(/\n|\t/).map(x=>x.trim()).filter(Boolean);if(names.length<2)return;
+  e.preventDefault();const d=caD();if(!d||d.submitted)return;const at=+el.dataset.i;let added=0;
+  while(d.stu.length<at+names.length&&d.stu.length<40){d.stu.push(caNewStu(d.stu.length+1));added++}
+  let n=0;names.forEach((nm,k)=>{const s=d.stu[at+k];if(s){s.name=nm.slice(0,20);n++}});caAutoSave();
+  if(added)render();else document.querySelectorAll('.ca-name').forEach(inp=>{const s=d.stu[+inp.dataset.i];if(s)inp.value=s.name||''});
+  const left=names.length-n;toast(`이름 ${n}명을 ${at+1}번부터 차례로 넣었어요.${added?` 학생 수를 ${d.stu.length}명으로 늘렸어요.`:''}${left>0?` (${left}명은 40명을 넘어 넣지 못했어요)`:''}`)});
 CHG.caName=el=>{caD().stu[+el.dataset.i].name=String(el.value||'').trim().slice(0,20);caAutoSave()};
 CHG.caCare=el=>{caD().stu[+el.dataset.i].care=el.checked;caAutoSave()};
 CHG.caTwin=el=>{caD().stu[+el.dataset.i].twin=el.checked;caAutoSave()};
