@@ -12116,12 +12116,12 @@ ACT.caRun=async()=>{const g=caGrade();if(!hcCanGrade(g)){toast('학년부장만 
   const assign={};st.forEach((s,i)=>assign[s.key]=bestR.A[i]);
   /* 전출 예정 학생: 성향을 빼고, 앞 반부터 한 명씩 (명부에서는 맨 뒷번호) */
   const rIx=rid=>roomsOf(g).findIndex(r=>r.id===rid);outs.sort((a,b)=>rIx(a.room)-rIx(b.room)||a.no-b.no).forEach((s,i)=>assign[s.key]=i%K);
-  const list=all.map(s=>[s.room,s.no,s.sx==='여'?1:0,(s.out?'x':'')+(s.t.prob>=5?'p':'')+(s.care?'c':'')+(s.t.grp>=5?'g':'')+((s.t.par||3)>=4?'a':'')+(s.twin?'w':'')+(caLow(s)?'l':''),caRank(all,s)]);const rsnap=rels.map(r=>r.grp?[r.t,r.a,r.b,'g']:[r.t,r.a,r.b]);const grps=[];roomsOf(g).forEach(r=>(caRoomDoc(g,r.id)?.rels||[]).forEach(x=>{if(x.t==='grp')grps.push({ms:(x.ms||[]).filter(k=>inSet.has(k))})}));const doc={k:K,assign,list,rels:rsnap,grps,at:Date.now(),by:myName(),viol:bestR.viol,sameBroken:bestR.sameBroken,missing:bestR.missing,n:all.length,out:outs.length};
+  const list=all.map(s=>[s.room,s.no,s.sx==='여'?1:0,(s.out?'x':'')+(s.t.prob>=5?'p':'')+(s.care?'c':'')+(s.t.grp>=5?'g':'')+((s.t.par||3)>=4?'a':'')+(s.twin?'w':'')+(caLow(s)?'l':'')+((s.t.ext||3)>=5?'e':''),caRank(all,s)]);const rsnap=rels.map(r=>r.grp?[r.t,r.a,r.b,'g']:[r.t,r.a,r.b]);const grps=[];roomsOf(g).forEach(r=>(caRoomDoc(g,r.id)?.rels||[]).forEach(x=>{if(x.t==='grp')grps.push({ms:(x.ms||[]).filter(k=>inSet.has(k))})}));const doc={k:K,assign,list,rels:rsnap,grps,at:Date.now(),by:myName(),viol:bestR.viol,sameBroken:bestR.sameBroken,missing:bestR.missing,n:all.length,out:outs.length};
   if(await guard(()=>store.set('classAssign','g'+g+'_res',doc),'반 배정을 마쳤어요. 모든 선생님이 결과를 볼 수 있어요.'))render()};
 
 /* ---- 결과 ---- */
-function caResList(g,res){if(res.list)return res.list.map(([room,no,f,fl,rk])=>{const key=caKey(room,no);const d=caRoomDoc(g,room);const full=d?.stu?.find(x=>x.no===no);fl=fl||'';return {key,room,no,name:full?.name||'',sx:f?'여':'남',t:full?.t,rank:rk||0,twin:full?!!full.twin:fl.includes('w'),out:full?!!full.out:fl.includes('x'),low:full?caLow(full):fl.includes('l'),care:full?full.care:fl.includes('c'),prob:full?full.t.prob>=5:fl.includes('p'),grp:full?full.t.grp>=5:fl.includes('g'),par:full?(full.t.par||3)>=4:fl.includes('a')}});
-  const A=caCollect(g).st;return A.map(s=>({...s,rank:caRank(A,s),low:caLow(s),prob:s.t.prob>=5,grp:s.t.grp>=5,par:(s.t.par||3)>=4}))}
+function caResList(g,res){if(res.list)return res.list.map(([room,no,f,fl,rk])=>{const key=caKey(room,no);const d=caRoomDoc(g,room);const full=d?.stu?.find(x=>x.no===no);fl=fl||'';return {key,room,no,name:full?.name||'',sx:f?'여':'남',t:full?.t,rank:rk||0,twin:full?!!full.twin:fl.includes('w'),out:full?!!full.out:fl.includes('x'),low:full?caLow(full):fl.includes('l'),care:full?full.care:fl.includes('c'),prob:full?full.t.prob>=5:fl.includes('p'),grp:full?full.t.grp>=5:fl.includes('g'),par:full?(full.t.par||3)>=4:fl.includes('a'),ext:full?(full.t.ext||3)>=5:fl.includes('e')}});
+  const A=caCollect(g).st;return A.map(s=>({...s,rank:caRank(A,s),low:caLow(s),prob:s.t.prob>=5,grp:s.t.grp>=5,par:(s.t.par||3)>=4,ext:(s.t.ext||3)>=5}))}
 const CA_HUE=[[255,138,128],[255,183,77],[129,199,132],[100,181,246],[186,104,200],[77,208,225],[240,98,146],[174,213,129],[255,213,79],[149,117,205],[79,195,247],[255,138,101]];
 function caResultHTML(g,res){const head=hcCanGrade(g);const st=caResList(g,res);const K=res.k;const cls=[...Array(K)].map(()=>[]);st.forEach(s=>{const c=res.assign[s.key];if(c!=null&&cls[c])cls[c].push(s)});
   const rooms=roomsOf(g);const rl=rid=>caRoomLbl(rooms.find(r=>r.id===rid));const ri=rid=>Math.max(0,rooms.findIndex(r=>r.id===rid));
@@ -12141,7 +12141,7 @@ function caResultHTML(g,res){const head=hcCanGrade(g);const st=caResList(g,res);
      ${hasT?`<div class="ca-avg2">${CA_TR.map(([k,l])=>`<span><small>${l}</small><b>${avg(L,k)}</b></span>`).join('')}</div>`:''}
      <ol class="ca-sl">${L.sort((a,b)=>ri(a.room)-ri(b.room)||a.no-b.no).map(stuHTML).join('')}</ol></article>`};
   return `<section class="card ca-res2"><div class="ca-rh"><div><h2>📋 ${esc(g)}학년 새 반 배정 결과</h2><p>${res.locked?'<span class="chip ok">🔒 확정</span>':'<span class="chip">검토 중</span>'} <span class="muted">${esc(res.by||'')} · ${esc(fmtTs(res.at))}</span></p></div><span style="flex:1"></span>
-     <button type="button" class="btn sm" data-act="caHwpx">📄 한글(HWPX) 양식 받기</button><button type="button" class="btn light sm" data-act="caPdf">🖨 PDF 받기</button><button type="button" class="btn light sm" data-act="caCsv" data-v="0">CSV 내려받기 (명단만)</button>${hasT?`<button type="button" class="btn light sm" data-act="caCsv" data-v="1">CSV (성향 점수 포함 · 학년부장)</button>`:''}</div>
+     <button type="button" class="btn sm" data-act="caHwpx">📄 한글(HWPX) 양식 받기</button><button type="button" class="btn sm" data-act="caXlsx" title="구글 시트에 그대로 불러올 수 있는 엑셀 파일 (특별표시 학생 색 표시)">📊 구글 시트용 엑셀 받기</button><button type="button" class="btn light sm" data-act="caPdf">🖨 PDF 받기</button><button type="button" class="btn light sm" data-act="caCsv" data-v="0">CSV 내려받기 (명단만)</button>${hasT?`<button type="button" class="btn light sm" data-act="caCsv" data-v="1">CSV (성향 점수 포함 · 학년부장)</button>`:''}</div>
    <div class="ca-sum"><div><small>전체</small><b>${st.length}<i>명</i></b></div><div><small>새 반</small><b>${K}<i>개</i></b></div><div><small>반당</small><b>${Math.floor(st.length/K)}${st.length%K?'~'+Math.ceil(st.length/K):''}<i>명</i></b></div>
      <div class="${nSame&&okSame<nSame?'bad':''}"><small>🤝 함께 배정</small><b>${okSame}<i>/ ${nSame}</i></b></div><div class="${okApart<nApart?'bad':''}"><small>⛔ 분리 배정</small><b>${okApart}<i>/ ${nApart}</i></b></div></div>
    <div class="ca-legend"><span><b class="ca-tg syn">🤝</b> 같은 반 시너지</span><span><b class="ca-tg apt">⛔</b> 다른 반으로 분리</span><span><b class="ca-tg prb">⚠ 주의</b> 문제행동 5</span><span><b class="ca-tg grp">👥</b> 무리 짓기 5</span><span><b class="ca-tg par">📞</b> 학부모 4 이상</span><span><b class="ca-tg care">💛</b> 배려</span><span class="ca-orgl">원래 반 ${rooms.map(r=>`<span><i class="ca-dot" style="--h:${ri(r.id)}"></i>${esc(caRoomLbl(r))}</span>`).join('')}</span><span class="muted small">학생에 마우스를 올리면 짝 · 분리 대상이 보여요.</span></div>
@@ -12237,6 +12237,86 @@ async function caBuildHwpx(D){
 ACT.caHwpx=async()=>{const g=caGrade();const res=caCol()['g'+g+'_res'];if(!res)return;if(typeof DecompressionStream==='undefined'&&typeof inflateRawSync!=='function'){toast('이 브라우저에서는 만들 수 없어요.','warn');return}
   toast('한글 양식을 채우는 중…');try{const blob=await caBuildHwpx(caFormData(g,res));await saveFile(`${(+g||0)+1}학년도_학급편성_${g}학년.hwpx`.replace(/^\d+학년도/,`${new Date().getFullYear()+1}학년도`),blob)}catch(e){console.error(e);toast('한글 파일을 만들지 못했어요: '+(e.message||e),'warn')}};
 
+/* ===== 반 배정 결과 → 구글 시트용 엑셀(.xlsx): 'N학년반편성' 시트 + 새 반별 학급명부 시트 ===== */
+const XL_COL={out:'7030A0',life:'FF0000',acad:'0000FF',care:'00B050',ext:'FF9900'};
+const caXlKind=s=>s.out?'out':(s.prob||s.grp)?'life':s.low?'acad':s.care?'care':s.ext?'ext':'';
+function xlBook(){const fonts=[],fills=[{p:'none'},{p:'gray125'}],borders=[{}],xfs=[],xk={},ss=[],sk={};
+  const idx=(arr,o)=>{const k=JSON.stringify(o);let i=arr.findIndex(x=>JSON.stringify(x)===k);if(i<0){arr.push(o);i=arr.length-1}return i};
+  idx(fonts,{});
+  const sty=(o={})=>{const f=idx(fonts,{b:o.b?1:0,c:o.c||'',sz:o.sz||10}),fl=o.fill?idx(fills,{p:'solid',c:o.fill}):0,bd=o.bd?idx(borders,o.bd):0;
+    const x={f,fl,bd,h:o.h||'',v:o.v||'center',w:o.wrap?1:0};const k=JSON.stringify(x);if(xk[k]==null){xfs.push(x);xk[k]=xfs.length-1}return xk[k]+1};
+  const str=v=>{const k=typeof v==='string'?'s:'+v:'r:'+JSON.stringify(v);if(sk[k]==null){ss.push(v);sk[k]=ss.length-1}return sk[k]};
+  const sheets=[];
+  const sheet=(name,cols)=>{const S={name,cols,cells:{},merges:[],heights:{}};S.set=(r,c,v,st)=>{(S.cells[r]=S.cells[r]||{})[c]={v,s:st||0}};S.merge=(r1,c1,r2,c2)=>S.merges.push([r1,c1,r2,c2]);sheets.push(S);return S};
+  const X=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const CN=c=>{let s='';while(c>0){const m=(c-1)%26;s=String.fromCharCode(65+m)+s;c=(c-m-1)/26}return s};
+  const fontX=f=>`<font>${f.b?'<b/>':''}<sz val="${f.sz||10}"/>${f.c?`<color rgb="FF${f.c}"/>`:''}<name val="맑은 고딕"/><family val="2"/></font>`;
+  const bdX=b=>`<border>${['left','right','top','bottom'].map(k=>b[k[0]]?`<${k} style="${b[k[0]]}"><color rgb="FF000000"/></${k}>`:`<${k}/>`).join('')}<diagonal/></border>`;
+  const build=()=>{
+    const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${fonts.length}">${fonts.map(fontX).join('')}</fonts><fills count="${fills.length}">${fills.map(f=>f.p==='solid'?`<fill><patternFill patternType="solid"><fgColor rgb="FF${f.c}"/><bgColor indexed="64"/></patternFill></fill>`:`<fill><patternFill patternType="${f.p}"/></fill>`).join('')}</fills><borders count="${borders.length}">${borders.map(bdX).join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length+1}"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>${xfs.map(x=>`<xf numFmtId="0" fontId="${x.f}" fillId="${x.fl}" borderId="${x.bd}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment${x.h?` horizontal="${x.h}"`:''} vertical="${x.v}"${x.w?' wrapText="1"':''}/></xf>`).join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+    const sx=sheets.map(S=>{const rows=Object.keys(S.cells).map(Number).sort((a,b)=>a-b);
+      const data=rows.map(r=>{const cs=Object.keys(S.cells[r]).map(Number).sort((a,b)=>a-b);return `<row r="${r}"${S.heights[r]?` ht="${S.heights[r]}" customHeight="1"`:''}>${cs.map(c=>{const {v,s}=S.cells[r][c];const ref=CN(c)+r;
+        if(v===''||v==null)return `<c r="${ref}"${s?` s="${s}"`:''}/>`;if(typeof v==='number')return `<c r="${ref}"${s?` s="${s}"`:''}><v>${v}</v></c>`;if(v&&v.f)return `<c r="${ref}"${s?` s="${s}"`:''}><f>${X(v.f)}</f><v>${v.v??''}</v></c>`;return `<c r="${ref}"${s?` s="${s}"`:''} t="s"><v>${str(v)}</v></c>`}).join('')}</row>`}).join('');
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"${S===sheets[0]?' tabSelected="1"':''}/></sheetViews><sheetFormatPr defaultRowHeight="16.5"/><cols>${S.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${data}</sheetData>${S.merges.length?`<mergeCells count="${S.merges.length}">${S.merges.map(([a,b,c,d])=>`<mergeCell ref="${CN(b)+a}:${CN(d)+c}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.5" right="0.5" top="0.5" bottom="0.5" header="0.3" footer="0.3"/></worksheet>`});
+    const sst=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${ss.length}" uniqueCount="${ss.length}">${ss.map(v=>typeof v==='string'?`<si><t xml:space="preserve">${X(v)}</t></si>`:`<si>${v.map(([t,o])=>`<r><rPr>${o.b?'<b/>':''}<sz val="${o.sz||10}"/>${o.c?`<color rgb="FF${o.c}"/>`:''}<rFont val="맑은 고딕"/></rPr><t xml:space="preserve">${X(t)}</t></r>`).join('')}</si>`).join('')}</sst>`;
+    const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>`;
+    const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+    const wb=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${sheets.map((S,i)=>`<sheet name="${X(S.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`;
+    const wbr=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId${sheets.length+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>`;
+    const ent=[['[Content_Types].xml',ct],['_rels/.rels',rels],['xl/workbook.xml',wb],['xl/_rels/workbook.xml.rels',wbr],['xl/styles.xml',styles],...sx.map((x,i)=>[`xl/worksheets/sheet${i+1}.xml`,x])];
+    ent.push(['xl/sharedStrings.xml',sst]);
+    return new Blob([zipStore(ent)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})};
+  return {sty,sheet,build}}
+function caBuildXlsx(D){const B=xlBook(),S=B.sty;const K=D.K,G=D.g,NG=D.ng;const nd=new Date();const Y=nd.getMonth()<2?nd.getFullYear()-1:nd.getFullYear();
+  const nm=s=>(s.name||`${D.roomNo(s)}반 ${s.no}번`)+(s.twin?'(쌍)':'');
+  const nmSt=(s,ex={})=>S({b:1,c:XL_COL[caXlKind(s)]||'',h:'center',...ex});
+  const cM=i=>2+3*i,cF=i=>3+3*i,last=1+3*K;
+  /* ① N학년반편성 */
+  const A=B.sheet(`${G}학년반편성`,[15,...[...Array(K)].flatMap(()=>[9,9,3])]);
+  A.set(1,1,[['<특별표시학생> ',{b:1}],['전출예정은 보라색',{b:1,c:XL_COL.out}],[', ',{b:1}],['학력보충은 파랑색',{b:1,c:XL_COL.acad}],[', ',{b:1}],['생활지도는 빨강색',{b:1,c:XL_COL.life}],[', ',{b:1}],['통합및특수는 초록색',{b:1,c:XL_COL.care}],[', ',{b:1}],['극E는 주황색',{b:1,c:XL_COL.ext}],[', 쌍둥이는 이름뒤에(쌍)',{b:1}]],S({h:'left',bd:{b:'thin'}}));A.merge(1,1,1,last);for(let c=2;c<=last;c++)A.set(1,c,'',S({bd:{b:'thin'}}));
+  A.set(2,2,[[`(예) ${G}-2 홍길동 -> `,{b:1}],['홍길동',{b:1,c:XL_COL.acad}],[`,   //   (예) ${G}-2 이재용 -> 이재용(쌍)`,{b:1}]],S({h:'left'}));
+  const why=['■ 학력보충(파랑): 학업 1단계 ■ 생활지도(빨강): 문제행동 또는 무리짓기 5단계 ■ 극E(주황): 외향 5단계','■ 통합및특수(초록): 통합·특수 표시 학생 ■ 전출예정(보라): 전출 표시 학생 (색이 겹치면 보라 > 빨강 > 파랑 > 초록 > 주황 순)',
+    '■ 배정 순서: 붙일·떨어뜨릴 학생 → 원래 반·성별 고른 인원 → 문제행동 → 무리 → 학부모 → 나머지 성향',`■ 이 파일은 온라인 교무실 반 배정 결과로 만들었어요. (${nd.getFullYear()}. ${nd.getMonth()+1}. ${nd.getDate()}.)`];
+  why.forEach((t,i)=>A.set(3+i,2,t,S({b:1,h:'left'})));
+  A.set(10,2,'*(매우 중요!!) 맨 아래에 각 반 배정 인원수 확인하세요!!',S({b:1,c:'0000FF',h:'left'}));
+  A.set(12,2,'아래는 각 반에 배정된 학생 이름입니다. (원래 반별로 정리)',S({b:1,h:'left',fill:'FFF2CC'}));A.merge(12,2,12,Math.min(last,cF(2)));
+  const hd=S({b:1,h:'center',fill:'D9EAD3',bd:{b:'thin'}}),sxh=S({b:1,h:'center',bd:{b:'medium'}}),plain=S({bd:{b:'medium'}});
+  for(let c=1;c<=last;c++){A.set(13,c,'',S({bd:{b:'thin'}}));A.set(14,c,'',plain)}
+  for(let i=0;i<K;i++){A.set(13,cM(i),`${NG}-${CA_LBL(i)}`,hd);A.set(13,cF(i),'',hd);A.merge(13,cM(i),13,cF(i));A.set(14,cM(i),'남',sxh);A.set(14,cF(i),'여',sxh)}
+  let r=15;const cnt=D.orig.map(()=>[...Array(K)].map(()=>[0,0]));
+  D.orig.forEach((o,oi)=>{const by=[...Array(K)].map(()=>[[],[]]);[...o.m,...o.f].forEach(s=>{const c=D.cls.findIndex(L=>L.includes(s));if(c>=0)by[c][s.sx==='남'?0:1].push(s)});
+    const h=Math.max(1,...by.flatMap(x=>[x[0].length,x[1].length]));
+    for(let c=1;c<=last;c++)A.set(r,c,'',S({bd:{t:'thin'}}));A.set(r,1,`${G}-${o.no}`,S({b:1,h:'right',bd:{t:'thin'}}));
+    by.forEach((x,i)=>x.forEach((L,sx)=>{cnt[oi][i][sx]=L.length;L.forEach((s,j)=>A.set(r+j,sx?cF(i):cM(i),nm(s),nmSt(s,j?{}:{bd:{t:'thin'}})))}));
+    r+=h+1});
+  for(let c=1;c<=last;c++)A.set(r,c,'',S({bd:{t:'medium'}}));r+=1;
+  const yh=S({b:1,h:'center',fill:'FFF2CC'});for(let i=0;i<K;i++){A.set(r,cM(i),`${NG}-${CA_LBL(i)}`,yh);A.set(r,cF(i),'',yh);A.merge(r,cM(i),r,cF(i))}A.heights[r]=28;r++;
+  A.set(r,1,'<각반 배정인원수>',S({b:1,h:'left'}));for(let i=0;i<K;i++){A.set(r,cM(i),'남',S({b:1,h:'center',bd:{b:'thin'}}));A.set(r,cF(i),'여',S({b:1,h:'center',bd:{b:'thin'}}))}r++;
+  const num=S({h:'center'}),r0=r;D.orig.forEach((o,oi)=>{A.set(r,1,`${G}-${o.no}`,S({b:1,h:'right'}));for(let i=0;i<K;i++){A.set(r,cM(i),cnt[oi][i][0],num);A.set(r,cF(i),cnt[oi][i][1],num)}r++});
+  const CNn=c=>{let s='';while(c>0){const m=(c-1)%26;s=String.fromCharCode(65+m)+s;c=(c-m-1)/26}return s};
+  const tot=(i,sx,ex)=>D.cls[i].filter(s=>s.sx===(sx?'여':'남')&&(!ex||!s.out)).length;
+  const gl=S({b:1,h:'left',fill:'D9EAD3',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}}),bx=S({b:1,h:'center',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}});
+  r++;A.set(r,1,'전출안하면',gl);for(let i=0;i<K;i++){A.set(r,cM(i),{f:`SUM(${CNn(cM(i))}${r0}:${CNn(cM(i))}${r0+D.orig.length-1})`,v:tot(i,0)},bx);A.set(r,cF(i),{f:`SUM(${CNn(cF(i))}${r0}:${CNn(cF(i))}${r0+D.orig.length-1})`,v:tot(i,1)},bx)}r++;
+  A.set(r,1,'전출하면',gl);for(let i=0;i<K;i++){A.set(r,cM(i),tot(i,0,1),bx);A.set(r,cF(i),tot(i,1,1),bx)}r++;
+  A.set(r,1,'',S({}));A.set(r,2,'※ 전출하면 = 전출 예정(보라색) 학생을 뺀 인원',S({h:'left',c:'666666'}));
+  /* ② 새 반별 학급명부 */
+  const O=D.orig;const ob=S({h:'center',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}});
+  D.cls.forEach((L,ci)=>{const R=B.sheet(`${NG}-${CA_LBL(ci)}`,[8,12,10,14,16,9,9,9,9,9,9,9]);const m=L.filter(s=>s.sx==='남').length;
+    R.set(1,1,`${Y+1}학년도 ( ${NG} ) 학년 ( ${CA_LBL(ci)} )반 학급명부`,S({b:1,sz:16,h:'left'}));R.merge(1,1,1,6);R.heights[1]=26;
+    R.set(2,1,`남: ${m}명, 여: ${L.length-m}명, 계: ${L.length}명   기록자: (          ) 인`,S({b:1,h:'left'}));R.merge(2,1,2,4);
+    R.set(2,5,'♣ : 학력 보충 고려 학생, ◇ : 인성.생활지도 고려 학생, ◎ 쌍둥이, △ 통합 및 특수학급',S({h:'left',sz:9}));
+    const th=S({b:1,h:'center',fill:'D9D9D9',wrap:1,bd:{t:'thin',b:'thin',l:'thin',r:'thin'}});
+    ['번호','성명','성별\n(남,여)',`${Y} 학년도\n학급(숫자기입)`,'비 고'].forEach((t,c)=>R.set(3,c+1,t,th));R.heights[3]=32;
+    const n=Math.max(24,L.length);for(let i=0;i<n;i++){const s=L[i];const rr=4+i;R.set(rr,1,i+1,S({b:1,h:'center',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}}));
+      R.set(rr,2,s?nm(s):'',s?nmSt(s,{bd:{t:'thin',b:'thin',l:'thin',r:'thin'}}):ob);R.set(rr,3,s?s.sx:'',ob);R.set(rr,4,s?Number(D.roomNo(s))||D.roomNo(s):'',ob);R.set(rr,5,s?caNote(s):'',ob)}
+    let t=4+n+3;const cb=S({b:1,h:'center',c:'1F3864',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}});
+    R.set(t,2,'반',cb);O.forEach((o,k)=>R.set(t,3+k,`${o.no}반`,cb));R.set(t,3+O.length,'계',cb);R.set(t,4+O.length,'합 계',cb);
+    R.set(t+1,1,`${Y}\n학년도`,S({b:1,h:'center',wrap:1,bd:{t:'thin',b:'thin',l:'thin',r:'thin'}}));R.set(t+2,1,'',ob);R.merge(t+1,1,t+2,1);
+    [['남',0],['여',1]].forEach(([lb,sx],j)=>{const rr=t+1+j;R.set(rr,2,lb,cb);let sum=0;O.forEach((o,k)=>{const v=L.filter(s=>s.sx===lb&&String(D.roomNo(s))===String(o.no)).length;sum+=v;R.set(rr,3+k,v,ob)});R.set(rr,3+O.length,sum,ob)});
+    R.set(t+1,4+O.length,L.length,S({b:1,h:'center',bd:{t:'thin',b:'thin',l:'thin',r:'thin'}}));R.set(t+2,4+O.length,'',ob);R.merge(t+1,4+O.length,t+2,4+O.length)});
+  return B.build()}
+ACT.caXlsx=async()=>{const g=caGrade();const res=caCol()['g'+g+'_res'];if(!res)return;toast('엑셀 파일을 만드는 중…');
+  try{const nd=new Date();const Y=nd.getMonth()<2?nd.getFullYear()-1:nd.getFullYear();await saveFile(`${Y+1}학년도_${(+g||0)+1}학년_반편성.xlsx`,caBuildXlsx(caFormData(g,res)))}catch(e){console.error(e);toast('엑셀 파일을 만들지 못했어요: '+(e.message||e),'warn')}};
 /* ---- PDF: 같은 양식 모양을 캔버스에 그려 A4 한 장씩 담음 (외부 도구 없이) ---- */
 const CA_PF="'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif";
 function caCanvasPage(draw){const S=2,W=794,H=1123;const cv=document.createElement('canvas');cv.width=W*S;cv.height=H*S;const x=cv.getContext('2d');x.scale(S,S);x.fillStyle='#fff';x.fillRect(0,0,W,H);
