@@ -12163,7 +12163,7 @@ function caFormData(g,res){const st=caResList(g,res);const rooms=roomsOf(g);cons
   const sxo=s=>s.sx==='남'?0:1;
   const cls=[...Array(K)].map(()=>[]);st.forEach(s=>{const c=res.assign[s.key];if(c!=null&&cls[c])cls[c].push(s)});
   cls.forEach(L=>L.sort((a,b)=>(a.out-b.out)||sxo(a)-sxo(b)||ri(a.room)-ri(b.room)||a.no-b.no));
-  const orig=rooms.map((r,i)=>{const L=st.filter(s=>s.room===r.id).sort((a,b)=>a.no-b.no);return {no:caRoomNo(r)||i+1,name:caRoomLbl(r),m:L.filter(s=>s.sx==='남'),f:L.filter(s=>s.sx==='여')}}).filter(o=>o.m.length+o.f.length);
+  const orig=rooms.map((r,i)=>{const L=st.filter(s=>s.room===r.id).sort((a,b)=>a.no-b.no);return {no:caRoomNo(r)||i+1,name:caRoomLbl(r),teacher:String(r.teacher||'').trim(),m:L.filter(s=>s.sx==='남'),f:L.filter(s=>s.sx==='여')}}).filter(o=>o.m.length+o.f.length);
   return {g:+g||g,ng:(+g||0)+1,K,cls,orig,newOf:s=>CA_LBL(res.assign[s.key]),roomNo:s=>{const r=rooms.find(x=>x.id===s.room);return r?(caRoomNo(r)||ri(s.room)+1):''},ri}}
 
 /* ---- HWPX: 원본 양식의 표 · 글자 모양은 그대로 두고 칸만 채움 ---- */
@@ -12194,7 +12194,7 @@ async function caBuildHwpx(D){
   const tbls=cl=>cl.flatMap(n=>[...n.getElementsByTagNameNS(CA_HPNS,'tbl')].filter(t=>!t.parentNode.closest||!t.parentNode.closest('tbl')));
   /* ① 학급 편성 근거자료: 원래 반마다 한 장 */
   D.orig.forEach((o,oi)=>{const cl=put(A,oi>0);const n=o.m.length+o.f.length;
-    caTexts(cl[1],v=>v.replace(/남:\s*명/,'남:'+caFit(o.m.length,4)+'명').replace(/여:\s*명/,'여:'+caFit(o.f.length,4)+'명').replace(/계:\s*명/,'계:'+caFit(n,4)+'명').replace(/제\s*학년\s*반/,'제 '+D.g+' 학년 '+o.no+' 반'));
+    caTexts(cl[1],v=>v.replace(/남:\s*명/,'남:'+caFit(o.m.length,4)+'명').replace(/여:\s*명/,'여:'+caFit(o.f.length,4)+'명').replace(/계:\s*명/,'계:'+caFit(n,4)+'명').replace(/제\s*학년\s*반/,'제 '+D.g+' 학년 '+o.no+' 반').replace(/담임\s*:\s*$/,'담임 : '+(o.teacher?caFit(o.teacher,8):'        ')));
     const tb=tbls([cl[2]])[0];const rows=Math.max(o.m.length,o.f.length);
     caGrowRows(tb,rows+2,(tr,r)=>{const c=caCells({children:[tr],get [Symbol.iterator](){return [tr][Symbol.iterator]()}})});
     const C=caCells(tb);
@@ -12235,7 +12235,7 @@ function caGrid(G,x0,y0,cols,rows,cell,opt={}){const X=[x0];cols.forEach(w=>X.pu
 function caPdfCanvases(D){const Y=new Date().getFullYear();const out=[];const legend='(♣ : 학력 보충 고려 학생, ◇ : 인성·생활지도 고려 학생, ◎ : 쌍둥이, △ : 통합 및 특수학급)';
   D.orig.forEach(o=>out.push(caCanvasPage((G,W)=>{const rows=Math.max(14,o.m.length,o.f.length);const L=56,TW=W-2*L;
     G.text(`${Y+1}학년도 학급 편성 근거자료`,W/2,92,{s:24,b:1});
-    G.text(`남: ${o.m.length} 명, 여: ${o.f.length} 명, 계: ${o.m.length+o.f.length} 명`,L+20,132,{s:13,b:1,al:'left'});G.text(`${Y}학년도 제 ${D.g} 학년 ${o.no} 반  담임 :              (인)`,W-L,132,{s:13,b:1,al:'right'});
+    G.text(`남: ${o.m.length} 명, 여: ${o.f.length} 명, 계: ${o.m.length+o.f.length} 명`,L+20,132,{s:13,b:1,al:'left'});G.text(`${Y}학년도 제 ${D.g} 학년 ${o.no} 반  담임 : ${o.teacher?'  '+o.teacher+'  ':'            '}  (인)`,W-L,132,{s:13,b:1,al:'right'});
     const cw=[.08,.10,.10,.10,.12].map(v=>v*TW);const cols=[...cw,...cw];const rh=Math.min(47,(1123-150-60-24-60)/rows);
     const hd=['순서','성  명','학습\n이해\n정도',`${Y+1}년\n진급 반`,'특이사항'];
     const g=caGrid(G,L,150,cols,[24,52,...Array(rows).fill(rh)],(r,c)=>{if(r===0)return c===0?{t:'남학생',cs:5}:c===5?{t:'여학생',cs:5}:null;
